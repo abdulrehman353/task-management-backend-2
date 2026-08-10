@@ -5,17 +5,12 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
  * @swagger
- * tags:
- *   name: Organizations
- *   description: Organization management and member controls
- */
-
-/**
- * @swagger
  * /api/orgs:
  *   post:
  *     summary: Create a new organization
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -43,6 +38,8 @@ router.post('/', authMiddleware, orgController.createOrganization);
  *   get:
  *     summary: Get all organizations
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: List of all organizations
@@ -55,6 +52,8 @@ router.get('/', authMiddleware, orgController.getAllOrganizations);
  *   put:
  *     summary: Update an organization
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -73,6 +72,8 @@ router.put('/:id', authMiddleware, orgController.updateOrganization);
  *   delete:
  *     summary: Delete an organization
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -91,6 +92,8 @@ router.delete('/:id', authMiddleware, orgController.deleteOrganization);
  *   post:
  *     summary: Assign user to an organization
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -114,6 +117,8 @@ router.post('/assign-user', authMiddleware, orgController.assignUserToOrg);
  *   post:
  *     summary: Remove user from organization
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -137,6 +142,8 @@ router.post('/remove-user', authMiddleware, orgController.removeUserFromOrg);
  *   post:
  *     summary: Transfer organization ownership
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -160,6 +167,8 @@ router.post('/transfer-owner', authMiddleware, orgController.transferOrgOwner);
  *   post:
  *     summary: Create a system role
  *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
