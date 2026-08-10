@@ -53,13 +53,12 @@ npm install
 Create a `.env` file:
 
 ```env
-PORT=3000
+PORT=5000
 DB_HOST=localhost
-DB_PORT=5000
+DB_PORT=3306
 DB_NAME=task_management_backend_2
 DB_USER=root
 DB_PASSWORD=your_password
-JWT_SECRET=your_secret
 ```
 
 ### Run Migrations
