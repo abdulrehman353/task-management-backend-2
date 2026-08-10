@@ -1,0 +1,180 @@
+const express = require('express');
+const router = express.Router();
+const orgController = require('../controllers/organizationController');
+const authMiddleware = require('../middlewares/authMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Organizations
+ *   description: Organization management and member controls
+ */
+
+/**
+ * @swagger
+ * /api/orgs:
+ *   post:
+ *     summary: Create a new organization
+ *     tags: [Organizations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               Name:
+ *                 type: string
+ *               Email:
+ *                 type: string
+ *               Logo:
+ *                 type: string
+ *               Theme:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Organization created successfully
+ */
+router.post('/', authMiddleware, orgController.createOrganization);
+
+/**
+ * @swagger
+ * /api/orgs:
+ *   get:
+ *     summary: Get all organizations
+ *     tags: [Organizations]
+ *     responses:
+ *       200:
+ *         description: List of all organizations
+ */
+router.get('/', authMiddleware, orgController.getAllOrganizations);
+
+/**
+ * @swagger
+ * /api/orgs/{id}:
+ *   put:
+ *     summary: Update an organization
+ *     tags: [Organizations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Organization updated successfully
+ */
+router.put('/:id', authMiddleware, orgController.updateOrganization);
+
+/**
+ * @swagger
+ * /api/orgs/{id}:
+ *   delete:
+ *     summary: Delete an organization
+ *     tags: [Organizations]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Organization deleted
+ */
+router.delete('/:id', authMiddleware, orgController.deleteOrganization);
+
+/**
+ * @swagger
+ * /api/orgs/assign-user:
+ *   post:
+ *     summary: Assign user to an organization
+ *     tags: [Organizations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               UserID:
+ *                 type: integer
+ *               OrganizationID:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: User assigned successfully
+ */
+router.post('/assign-user', authMiddleware, orgController.assignUserToOrg);
+
+/**
+ * @swagger
+ * /api/orgs/remove-user:
+ *   post:
+ *     summary: Remove user from organization
+ *     tags: [Organizations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               UserID:
+ *                 type: integer
+ *               OrganizationID:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: User removed successfully
+ */
+router.post('/remove-user', authMiddleware, orgController.removeUserFromOrg);
+
+/**
+ * @swagger
+ * /api/orgs/transfer-owner:
+ *   post:
+ *     summary: Transfer organization ownership
+ *     tags: [Organizations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               OrganizationID:
+ *                 type: integer
+ *               NewOwnerUserID:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Ownership transferred successfully
+ */
+router.post('/transfer-owner', authMiddleware, orgController.transferOrgOwner);
+
+/**
+ * @swagger
+ * /api/orgs/roles:
+ *   post:
+ *     summary: Create a system role
+ *     tags: [Organizations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               RoleName:
+ *                 type: string
+ *               Description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Role created successfully
+ */
+router.post('/roles', authMiddleware, orgController.createRole);
+
+module.exports = router;
