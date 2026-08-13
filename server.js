@@ -7,6 +7,8 @@ const { sequelize } = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const orgRoutes = require('./routes/organizationRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/orgs', orgRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 app.get('/', (req, res) => {
   res.send('Task Management Server Running Successfully! Visit /api-docs for Swagger UI.');

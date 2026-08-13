@@ -18,7 +18,7 @@ const Organization = sequelize.define('Organization', {
   OrganizationID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   Name: { type: DataTypes.STRING, allowNull: false },
   Email: { type: DataTypes.STRING, allowNull: true },
-  Logo: { type: DataTypes.TEXT, allowNull: true }, // Base64 Text String ke liye TEXT use kiya hai
+  Logo: { type: DataTypes.TEXT, allowNull: true }, 
   Theme: { type: DataTypes.STRING, defaultValue: 'light' },
 });
 
@@ -62,6 +62,22 @@ const Tasks = sequelize.define('Tasks', {
   Status: { type: DataTypes.STRING, defaultValue: 'todo' },
   Priority: { type: DataTypes.STRING, defaultValue: 'medium' },
   DueDate: { type: DataTypes.DATEONLY, allowNull: true },
+});
+
+// Ticket Table
+const Ticket = sequelize.define('Ticket', {
+  TicketID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  Title: { type: DataTypes.STRING, allowNull: false },
+  Description: { type: DataTypes.TEXT, allowNull: true },
+  Status: { 
+    type: DataTypes.ENUM('todo', 'in_progress', 'done'), 
+    defaultValue: 'todo' 
+  },
+  Priority: { 
+    type: DataTypes.ENUM('low', 'medium', 'high'), 
+    defaultValue: 'medium' 
+  },
+  Attachment: { type: DataTypes.TEXT, allowNull: true },
 });
 
 // Comments Table
@@ -126,6 +142,16 @@ Project.hasMany(Tasks, { foreignKey: 'ProjectID' });
 Tasks.belongsTo(User, { foreignKey: 'CreatedBy', as: 'Creator' });
 Tasks.belongsTo(User, { foreignKey: 'AssignedTo', as: 'Assignee' });
 
+// Ticket Relationships
+Ticket.belongsTo(Project, { foreignKey: 'ProjectID' });
+Project.hasMany(Ticket, { foreignKey: 'ProjectID' });
+
+Ticket.belongsTo(User, { foreignKey: 'AssignedToUserID', as: 'AssignedUser' });
+User.hasMany(Ticket, { foreignKey: 'AssignedToUserID', as: 'AssignedTickets' });
+
+Ticket.belongsTo(User, { foreignKey: 'CreatedByUserID', as: 'Creator' });
+User.hasMany(Ticket, { foreignKey: 'CreatedByUserID', as: 'CreatedTickets' });
+
 // Comments, Attachments & Activity History
 Comments.belongsTo(Tasks, { foreignKey: 'TaskID' });
 Tasks.hasMany(Comments, { foreignKey: 'TaskID' });
@@ -150,6 +176,7 @@ module.exports = {
   Project,
   ProjectMembers,
   Tasks,
+  Ticket,
   Comments,
   Attachments,
   ActivityHistory,
