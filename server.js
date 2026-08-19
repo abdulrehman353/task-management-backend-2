@@ -11,6 +11,9 @@ const projectRoutes = require('./routes/projectRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
+const uploadRoutes = require('./routes/uploadRoutes');
+
+app.use('/api', uploadRoutes);
 
 app.use(express.json());
 
@@ -30,7 +33,7 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(() => {
     console.log('Database connected and synced successfully!');
     app.listen(PORT, () => {

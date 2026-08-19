@@ -1,9 +1,25 @@
 const { Ticket, Project, User } = require('../models');
+const minioClient = require('../config/minioClient');
 
-// 1. Create Ticket
+const uploadToMinIO = async (file) => {
+  const bucketName = process.env.MINIO_BUCKET_NAME || 'task-attachments';
+  const fileName = `tickets/${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+
+  await minioClient.putObject(
+    bucketName,
+    fileName,
+    file.buffer,
+    file.size,
+    { 'Content-Type': file.mimetype }
+  );
+
+  return `http://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || 9000}/${bucketName}/${fileName}`;
+};
+
+// 1. Create Ticket (With MinIO File Upload Support)
 exports.createTicket = async (req, res) => {
   try {
-    const { Title, Description, Status, Priority, ProjectID, AssignedToUserID, Attachment } = req.body;
+    const { Title, Description, Status, Priority, ProjectID, AssignedToUserID } = req.body;
 
     // Check if Project exists
     const project = await Project.findByPk(ProjectID);
@@ -11,14 +27,23 @@ exports.createTicket = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
+    let attachmentUrl = null;
+
+
+    if (req.file) {
+      attachmentUrl = await uploadToMinIO(req.file);
+    } else if (req.body.Attachment) {
+      attachmentUrl = req.body.Attachment;
+    }
+
     const ticket = await Ticket.create({
       Title,
       Description,
-      Status,
-      Priority,
+      Status: Status || 'to do',
+      Priority: Priority || 'medium',
       ProjectID,
-      AssignedToUserID,
-      Attachment,
+      AssignedToUserID: AssignedToUserID || null,
+      Attachment: attachmentUrl,
       CreatedByUserID: req.user.id
     });
 
@@ -55,15 +80,24 @@ exports.getAllTickets = async (req, res) => {
   }
 };
 
-// 3. Update Ticket (Includes Updating Status/Details & Assigning Users)
+// 3. Update Ticket
 exports.updateTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const { Title, Description, Status, Priority, AssignedToUserID, Attachment } = req.body;
+    const { Title, Description, Status, Priority, AssignedToUserID } = req.body;
 
     const ticket = await Ticket.findByPk(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    let attachmentUrl = ticket.Attachment;
+
+    
+    if (req.file) {
+      attachmentUrl = await uploadToMinIO(req.file);
+    } else if (req.body.Attachment !== undefined) {
+      attachmentUrl = req.body.Attachment;
     }
 
     await ticket.update({
@@ -72,7 +106,7 @@ exports.updateTicket = async (req, res) => {
       Status: Status || ticket.Status,
       Priority: Priority || ticket.Priority,
       AssignedToUserID: AssignedToUserID || ticket.AssignedToUserID,
-      Attachment: Attachment || ticket.Attachment
+      Attachment: attachmentUrl
     });
 
     res.status(200).json({ message: 'Ticket updated successfully', ticket });
@@ -81,18 +115,26 @@ exports.updateTicket = async (req, res) => {
   }
 };
 
-// 4. Attach Image URL to Ticket
+// 4. Attach Image (Direct File Upload to MinIO)
 exports.attachImage = async (req, res) => {
   try {
     const { id } = req.params;
-    const { Attachment } = req.body; 
 
     const ticket = await Ticket.findByPk(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    await ticket.update({ Attachment });
+    let attachmentUrl = null;
+
+    if (req.file) {mentUrl = await uploadToMinIO(req.file);
+    } else if (req.body.Attachment) {
+      attachmentUrl = req.body.Attachment;
+    } else {
+      return res.status(400).json({ message: 'Please provide an image file or Attachment URL' });
+    }
+
+    await ticket.update({ Attachment: attachmentUrl });
     res.status(200).json({ message: 'Image attached successfully', ticket });
   } catch (error) {
     res.status(500).json({ message: 'Error attaching image', error: error.message });
@@ -112,5 +154,59 @@ exports.deleteTicket = async (req, res) => {
     res.status(200).json({ message: 'Ticket deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting ticket', error: error.message });
+  }
+};
+
+// Allowed transitions mapping
+const ALLOWED_TRANSITIONS = {
+  'to do': ['in progress', 'blocked'],
+  'todo': ['in progress', 'blocked'],
+  'in progress': ['to do', 'blocked', 'testing'],
+  'blocked': ['to do', 'in progress'],
+  'testing': ['in progress', 'done'],
+  'done': [] // Done ticket cannot be moved
+};
+
+exports.updateTicketStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // 1. Check if ticket exists
+    const ticket = await Ticket.findByPk(id);
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    const currentStatus = ticket.Status;
+    const nextStatus = status?.toLowerCase();
+
+    // 2. Validate if provided status is a valid status
+    const validStatuses = Object.keys(ALLOWED_TRANSITIONS);
+    if (!validStatuses.includes(nextStatus)) {
+      return res.status(400).json({
+        message: `Invalid status. Allowed values: ${validStatuses.join(', ')}`
+      });
+    }
+
+    // 3. Check if transition is allowed
+    const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+    if (!allowedNext.includes(nextStatus)) {
+      return res.status(400).json({
+        message: `Cannot move ticket from '${currentStatus}' to '${nextStatus}'. Allowed moves: [${allowedNext.join(', ')}]`
+      });
+    }
+
+    // 4. Update status
+    ticket.Status = nextStatus;
+    await ticket.save();
+
+    res.status(200).json({
+      message: `Ticket status successfully updated to '${nextStatus}'`,
+      ticket
+    });
+  } catch (error) {
+    console.error('Error updating ticket status:', error);
+    res.status(500).json({ message: 'Error updating ticket status', error: error.message });
   }
 };

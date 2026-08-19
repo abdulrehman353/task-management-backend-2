@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const upload = require('../middlewares/upload'); // Multer Memory Storage Middleware
 
 /**
  * @swagger
@@ -14,14 +15,14 @@ const authMiddleware = require('../middlewares/authMiddleware');
  * @swagger
  * /api/tickets:
  *   post:
- *     summary: Create a new ticket
+ *     summary: Create a new ticket (with optional file upload)
  *     tags: [Tickets]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -34,7 +35,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *                 type: string
  *               Status:
  *                 type: string
- *                 enum: [todo, in_progress, done]
+ *                 enum: [to do, in_progress, blocked, testing, done]
  *               Priority:
  *                 type: string
  *                 enum: [low, medium, high]
@@ -44,12 +45,13 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *                 type: integer
  *               Attachment:
  *                 type: string
- *                 description: Image URL text string
+ *                 format: binary
+ *                 description: Image/attachment file to upload
  *     responses:
  *       201:
  *         description: Ticket created successfully
  */
-router.post('/', authMiddleware, ticketController.createTicket);
+router.post('/', authMiddleware, upload.single('Attachment'), ticketController.createTicket);
 
 /**
  * @swagger
@@ -82,7 +84,7 @@ router.get('/', authMiddleware, ticketController.getAllTickets);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
@@ -92,7 +94,7 @@ router.get('/', authMiddleware, ticketController.getAllTickets);
  *                 type: string
  *               Status:
  *                 type: string
- *                 enum: [todo, in_progress, done]
+ *                 enum: [to do, in_progress, blocked, testing, done]
  *               Priority:
  *                 type: string
  *                 enum: [low, medium, high]
@@ -100,17 +102,19 @@ router.get('/', authMiddleware, ticketController.getAllTickets);
  *                 type: integer
  *               Attachment:
  *                 type: string
+ *                 format: binary
+ *                 description: Optional new image to replace
  *     responses:
  *       200:
  *         description: Ticket updated successfully
  */
-router.put('/:id', authMiddleware, ticketController.updateTicket);
+router.put('/:id', authMiddleware, upload.single('Attachment'), ticketController.updateTicket);
 
 /**
  * @swagger
  * /api/tickets/{id}/attach-image:
  *   post:
- *     summary: Attach image URL to a ticket
+ *     summary: Attach image file to an existing ticket
  *     tags: [Tickets]
  *     security:
  *       - bearerAuth: []
@@ -123,18 +127,21 @@ router.put('/:id', authMiddleware, ticketController.updateTicket);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - Attachment
  *             properties:
  *               Attachment:
  *                 type: string
- *                 example: "https://i.imgur.com/example.png"
+ *                 format: binary
+ *                 description: Image file to upload
  *     responses:
  *       200:
- *         description: Image URL attached successfully
+ *         description: Image attached successfully
  */
-router.post('/:id/attach-image', authMiddleware, ticketController.attachImage);
+router.post('/:id/attach-image', authMiddleware, upload.single('Attachment'), ticketController.attachImage);
 
 /**
  * @swagger
@@ -155,5 +162,42 @@ router.post('/:id/attach-image', authMiddleware, ticketController.attachImage);
  *         description: Ticket deleted successfully
  */
 router.delete('/:id', authMiddleware, ticketController.deleteTicket);
+
+/**
+ * @swagger
+ * /api/tickets/{id}/status:
+ *   patch:
+ *     summary: Update ticket status workflow
+ *     tags: [Tickets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [to do, in progress, blocked, testing, done]
+ *                 example: in progress
+ *     responses:
+ *       200:
+ *         description: Ticket status successfully updated
+ *       400:
+ *         description: Invalid status transition
+ *       404:
+ *         description: Ticket not found
+ */
+router.patch('/:id/status', authMiddleware, ticketController.updateTicketStatus);
 
 module.exports = router;

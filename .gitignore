@@ -1,2 +1,6 @@
 node_modules/
 .env
+minio/
+minio.exe
+mc.exe
+cloudflared.exe

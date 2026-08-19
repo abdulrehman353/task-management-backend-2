@@ -70,7 +70,7 @@ const Ticket = sequelize.define('Ticket', {
   Title: { type: DataTypes.STRING, allowNull: false },
   Description: { type: DataTypes.TEXT, allowNull: true },
   Status: { 
-    type: DataTypes.ENUM('todo', 'in_progress', 'done'), 
+    type: DataTypes.ENUM('todo', 'in_progress','blocked', 'testing', 'done'), 
     defaultValue: 'todo' 
   },
   Priority: { 
