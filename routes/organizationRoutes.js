@@ -60,9 +60,27 @@ router.get('/', authMiddleware, orgController.getAllOrganizations);
  *         required: true
  *         schema:
  *           type: integer
+ *         description: Organization ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               Name:
+ *                 type: string
+ *               Email:
+ *                 type: string
+ *               Logo:
+ *                 type: string
+ *               Theme:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Organization updated successfully
+ *       404:
+ *         description: Organization not found
  */
 router.put('/:id', authMiddleware, orgController.updateOrganization);
 
@@ -165,7 +183,7 @@ router.post('/transfer-owner', authMiddleware, orgController.transferOrgOwner);
  * @swagger
  * /api/orgs/roles:
  *   post:
- *     summary: Create a system role
+ *     summary: Create a role
  *     tags: [Organizations]
  *     security:
  *       - bearerAuth: []
@@ -185,5 +203,37 @@ router.post('/transfer-owner', authMiddleware, orgController.transferOrgOwner);
  *         description: Role created successfully
  */
 router.post('/roles', authMiddleware, orgController.createRole);
+
+/**
+ * @swagger
+ * /api/orgs/assign-role:
+ *   post:
+ *     summary: Assign role to user
+ *     tags: [Organizations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - userId
+ *               - roleId
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *               roleId:
+ *                 type: integer
+ *               organizationId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Role assigned successfully
+ *       404:
+ *         description: User or Role not found
+ */
+router.post('/assign-role', authMiddleware,  orgController.assignRoleToUser);
 
 module.exports = router;

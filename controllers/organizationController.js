@@ -159,3 +159,46 @@ exports.createRole = async (req, res) => {
     res.status(500).json({ message: 'Error creating role', error: error.message });
   }
 };
+
+// 9. Assign Role to User
+exports.assignRoleToUser = async (req, res) => {
+  try {
+    const { userId, roleId, organizationId } = req.body;
+
+    if (!userId || !roleId) {
+      return res.status(400).json({ message: 'userId and roleId are required' });
+    }
+
+    // User check 
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Role check 
+    const role = await Role.findByPk(roleId);
+    if (!role) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+
+    // Assign role to user
+    user.RoleId = roleId;
+    if (organizationId) {
+      user.OrganizationID = organizationId;
+    }
+    await user.save();
+
+    return res.status(200).json({
+      message: `Role '${role.RoleName}' assigned to user '${user.Name}' successfully!`,
+      user: {
+        id: user.UserID || user.id,
+        name: user.Name,
+        email: user.Email,
+        role: role.RoleName,
+        organizationId: user.OrganizationID
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error assigning role', error: error.message });
+  }
+};
