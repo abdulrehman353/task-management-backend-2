@@ -21,8 +21,8 @@ exports.signup = async (req, res) => {
       Name,
       Email,
       Password: hashedPassword,
-      Date_of_birth,
-    });
+      Date_of_birth: Date_of_birth || null,
+    }); 
 
     res.status(201).json({
       message: 'User registered successfully!',

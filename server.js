@@ -9,13 +9,21 @@ const taskRoutes = require('./routes/taskRoutes');
 const orgRoutes = require('./routes/organizationRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
+const roleRoutes = require('./routes/roleRoutes');      
+const permissionRoutes = require('./routes/permissionRoutes');   
+const userRoutes = require('./routes/userRoutes');               
 
 const app = express();
 const uploadRoutes = require('./routes/uploadRoutes');
 
+app.use(express.json());
+
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);                
+app.use('/api/permissions', permissionRoutes);
+
 app.use('/api', uploadRoutes);
 
-app.use(express.json());
 
 // Swagger UI Endpoint
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
