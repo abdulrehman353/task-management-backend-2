@@ -1,4 +1,4 @@
-const { Permissions, Role } = require('../models');
+const { Permissions, Role, RolePermission } = require('../models');
 
 // 1. Create Permission
 exports.createPermission = async (req, res) => {
@@ -21,10 +21,20 @@ exports.createPermission = async (req, res) => {
   }
 };
 
-// 2. Get All Permissions
+// 2. Get All Permissions (With all assigned roles)
 exports.getAllPermissions = async (req, res) => {
   try {
-    const permissions = await Permissions.findAll();
+    const permissions = await Permissions.findAll({
+      attributes: ['PermissionID', 'PermissionName', 'createdAt', 'updatedAt'], // purana confusing RoleID column hide
+      include: [
+        {
+          model: Role,
+          as: 'roles',
+          attributes: ['RoleID', 'RoleName'],
+          through: { attributes: [] } // junction table ke extra columns hide
+        }
+      ]
+    });
     return res.status(200).json(permissions);
   } catch (error) {
     return res.status(500).json({ message: 'Error fetching permissions', error: error.message });
@@ -59,14 +69,17 @@ exports.deletePermission = async (req, res) => {
       return res.status(404).json({ message: 'Permission not found' });
     }
 
+    // RolePermission junction table se bhi records clean ho jayenge
+    await RolePermission.destroy({ where: { PermissionID: id } });
     await permission.destroy();
+
     return res.status(200).json({ message: 'Permission deleted successfully' });
   } catch (error) {
     return res.status(500).json({ message: 'Error deleting permission', error: error.message });
   }
 };
 
-// 5. Assign Permission to Role
+// 5. Assign Permission to Role (Many-to-Many via Junction Table)
 exports.assignPermissionToRole = async (req, res) => {
   try {
     const { RoleID, PermissionID } = req.body;
@@ -85,15 +98,18 @@ exports.assignPermissionToRole = async (req, res) => {
       return res.status(404).json({ message: 'Permission not found' });
     }
 
-    // Sequelize association helper
-    if (role.addPermission) {
-      await role.addPermission(permission);
-    }
+    // Junction Table me record insert ya find karein (purani mapping delete nahi hogi)
+    const [mapping, created] = await RolePermission.findOrCreate({
+      where: { RoleID: Number(RoleID), PermissionID: Number(PermissionID) },
+      defaults: { RoleID: Number(RoleID), PermissionID: Number(PermissionID) }
+    });
 
     return res.status(200).json({
-      message: `Permission '${permission.PermissionName}' assigned to Role '${role.RoleName}' successfully!`
+      message: created 
+        ? `Permission '${permission.PermissionName}' assigned to Role '${role.RoleName}' successfully!`
+        : `Permission '${permission.PermissionName}' is already assigned to Role '${role.RoleName}'!`
     });
   } catch (error) {
     return res.status(500).json({ message: 'Error assigning permission', error: error.message });
   }
-};                                                          
+};

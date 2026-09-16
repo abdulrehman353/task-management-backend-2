@@ -16,75 +16,133 @@ const uploadToMinIO = async (file) => {
   return `http://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || 9000}/${bucketName}/${fileName}`;
 };
 
-// 1. Create Ticket (With MinIO File Upload Support)
+// Helpers to sanitize incoming UI values to match exact MySQL ENUM definitions
+const normalizeStatus = (val) => {
+  const s = (val || '').toLowerCase().trim();
+  if (s === 'ready to do' || s === 'ready_to_do' || s === 'todo' || s === 'to do') return 'todo';
+  if (s === 'in progress' || s === 'in_progress') return 'in_progress';
+  if (s === 'blocked') return 'blocked';
+  if (s === 'testing') return 'testing';
+  if (s === 'done') return 'done';
+  return 'todo';
+};
+
+const normalizePriority = (val) => {
+  const p = (val || '').toLowerCase().trim();
+  if (['low', 'medium', 'high'].includes(p)) return p;
+  return 'medium';
+};
+
+// Allowed transitions mapping based on MySQL ENUMs
+const ALLOWED_TRANSITIONS = {
+  'todo': ['in_progress', 'blocked'],
+  'in_progress': ['todo', 'blocked', 'testing'],
+  'blocked': ['todo', 'in_progress'],
+  'testing': ['in_progress', 'done'],
+  'done': []
+};
+
+// 1. Create Ticket
 exports.createTicket = async (req, res) => {
   try {
-    const { Title, Description, Status, Priority, ProjectID, AssignedToUserID } = req.body;
+    const { 
+      Title, 
+      title, 
+      Description, 
+      description, 
+      Status, 
+      status, 
+      Priority, 
+      priority, 
+      ProjectID, 
+      project_id, 
+      AssignedToUserID, 
+      AssignedTo,
+      assigned_to 
+    } = req.body;
+
+    const targetTitle = Title || title;
+    const targetDesc = Description || description;
+    const targetProjectId = ProjectID || project_id;
+    const currentUserId = req.user?.UserID || req.user?.id || 1;
+
+    if (!targetTitle) {
+      return res.status(400).json({ message: 'Ticket title is required' });
+    }
 
     // Check if Project exists
-    const project = await Project.findByPk(ProjectID);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+    if (targetProjectId) {
+      const project = await Project.findByPk(targetProjectId);
+      if (!project) {
+        return res.status(404).json({ message: `Project #${targetProjectId} not found` });
+      }
     }
 
     let attachmentUrl = null;
-
-
     if (req.file) {
       attachmentUrl = await uploadToMinIO(req.file);
-    } else if (req.body.Attachment) {
-      attachmentUrl = req.body.Attachment;
+    } else if (req.body.Attachment || req.body.attachment_url) {
+      attachmentUrl = req.body.Attachment || req.body.attachment_url;
     }
 
+    const finalStatus = normalizeStatus(Status || status);
+    const finalPriority = normalizePriority(Priority || priority);
+    const assignedUser = AssignedToUserID || AssignedTo || assigned_to || null;
+
     const ticket = await Ticket.create({
-      Title,
-      Description,
-      Status: Status || 'to do',
-      Priority: Priority || 'medium',
-      ProjectID,
-      AssignedToUserID: AssignedToUserID || null,
+      Title: targetTitle,
+      Description: targetDesc,
+      Status: finalStatus,
+      Priority: finalPriority,
+      ProjectID: targetProjectId ? Number(targetProjectId) : null,
+      AssignedToUserID: assignedUser ? Number(assignedUser) : null,
       Attachment: attachmentUrl,
-      CreatedByUserID: req.user.id
+      CreatedByUserID: currentUserId
     });
 
-    res.status(201).json({ message: 'Ticket created successfully', ticket });
+    return res.status(201).json({ message: 'Ticket created successfully', ticket });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating ticket', error: error.message });
+    console.error('Error creating ticket:', error);
+    return res.status(500).json({ message: 'Error creating ticket', error: error.message });
   }
 };
 
 // 2. Get All Tickets
 exports.getAllTickets = async (req, res) => {
   try {
+    const projectIdFilter = req.query.ProjectID || req.query.projectId;
+    const whereCondition = projectIdFilter ? { ProjectID: projectIdFilter } : {};
+
     const tickets = await Ticket.findAll({
-      include: [
-        { 
-          model: Project, 
-          attributes: ['ProjectID', 'Name'] 
-        },
-        { 
-          model: User, 
-          as: 'AssignedUser', 
-          attributes: ['UserID', 'Name', 'Email'] 
-        },
-        { 
-          model: User, 
-          as: 'Creator', 
-          attributes: ['UserID', 'Name', 'Email'] 
-        }
-      ]
+      where: whereCondition,
+      order: [['createdAt', 'DESC']]
     });
-    res.status(200).json(tickets);
+    return res.status(200).json(tickets);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching tickets', error: error.message });
+    console.error('Error fetching tickets:', error);
+    return res.status(500).json({ message: 'Error fetching tickets', error: error.message });
   }
 };
 
-// 3. Update Ticket
+// 3. Update Ticket (Fixed ProjectID Assignment)
 exports.updateTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const { Title, Description, Status, Priority, AssignedToUserID } = req.body;
+    const { 
+      Title, 
+      title, 
+      Description, 
+      description, 
+      Status, 
+      status, 
+      Priority, 
+      priority, 
+      ProjectID,
+      project_id,
+      AssignedToUserID, 
+      AssignedTo, 
+      assigned_to 
+    } = req.body;
 
     const ticket = await Ticket.findByPk(id);
     if (!ticket) {
@@ -92,52 +150,55 @@ exports.updateTicket = async (req, res) => {
     }
 
     let attachmentUrl = ticket.Attachment;
-
-    
     if (req.file) {
       attachmentUrl = await uploadToMinIO(req.file);
     } else if (req.body.Attachment !== undefined) {
       attachmentUrl = req.body.Attachment;
     }
 
+    const assignedUser = AssignedToUserID ?? AssignedTo ?? assigned_to ?? ticket.AssignedToUserID;
+    const targetProjectId = ProjectID !== undefined ? ProjectID : (project_id !== undefined ? project_id : ticket.ProjectID);
+
     await ticket.update({
-      Title: Title || ticket.Title,
-      Description: Description || ticket.Description,
-      Status: Status || ticket.Status,
-      Priority: Priority || ticket.Priority,
-      AssignedToUserID: AssignedToUserID || ticket.AssignedToUserID,
+      Title: Title ?? title ?? ticket.Title,
+      Description: Description ?? description ?? ticket.Description,
+      Status: Status || status ? normalizeStatus(Status || status) : ticket.Status,
+      Priority: Priority || priority ? normalizePriority(Priority || priority) : ticket.Priority,
+      ProjectID: targetProjectId ? Number(targetProjectId) : null,
+      AssignedToUserID: assignedUser ? Number(assignedUser) : null,
       Attachment: attachmentUrl
     });
 
-    res.status(200).json({ message: 'Ticket updated successfully', ticket });
+    return res.status(200).json({ message: 'Ticket updated successfully', ticket });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating ticket', error: error.message });
+    console.error('Error updating ticket:', error);
+    return res.status(500).json({ message: 'Error updating ticket', error: error.message });
   }
 };
 
-// 4. Attach Image (Direct File Upload to MinIO)
+// 4. Attach Image
 exports.attachImage = async (req, res) => {
   try {
     const { id } = req.params;
-
     const ticket = await Ticket.findByPk(id);
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
     let attachmentUrl = null;
-
-    if (req.file) {mentUrl = await uploadToMinIO(req.file);
-    } else if (req.body.Attachment) {
-      attachmentUrl = req.body.Attachment;
+    if (req.file) {
+      attachmentUrl = await uploadToMinIO(req.file);
+    } else if (req.body.Attachment || req.body.image) {
+      attachmentUrl = req.body.Attachment || req.body.image;
     } else {
       return res.status(400).json({ message: 'Please provide an image file or Attachment URL' });
     }
 
     await ticket.update({ Attachment: attachmentUrl });
-    res.status(200).json({ message: 'Image attached successfully', ticket });
+    return res.status(200).json({ message: 'Image attached successfully', ticket });
   } catch (error) {
-    res.status(500).json({ message: 'Error attaching image', error: error.message });
+    console.error('Error attaching image:', error);
+    return res.status(500).json({ message: 'Error attaching image', error: error.message });
   }
 };
 
@@ -151,26 +212,20 @@ exports.deleteTicket = async (req, res) => {
     }
 
     await ticket.destroy();
-    res.status(200).json({ message: 'Ticket deleted successfully' });
+    return res.status(200).json({ message: 'Ticket deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting ticket', error: error.message });
+    console.error('Error deleting ticket:', error);
+    return res.status(500).json({ message: 'Error deleting ticket', error: error.message });
   }
 };
 
-// Allowed transitions mapping
-const ALLOWED_TRANSITIONS = {
-  'to do': ['in progress', 'blocked'],
-  'todo': ['in progress', 'blocked'],
-  'in progress': ['to do', 'blocked', 'testing'],
-  'blocked': ['to do', 'in progress'],
-  'testing': ['in progress', 'done'],
-  'done': [] // Done ticket cannot be moved
-};
-
+// 6. Status State Transitions (Fixed for MySQL ENUMs)
 exports.updateTicketStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, Status } = req.body;
+
+    console.log(`[PATCH Status] Ticket #${id} request to change to:`, status || Status);
 
     // 1. Check if ticket exists
     const ticket = await Ticket.findByPk(id);
@@ -178,35 +233,49 @@ exports.updateTicketStatus = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found' });
     }
 
-    const currentStatus = ticket.Status;
-    const nextStatus = status?.toLowerCase();
+    // Clean input status to match MySQL ENUM
+    const rawNext = (status || Status || '').toLowerCase().trim();
+    let nextStatus = rawNext;
+    if (rawNext === 'ready to do' || rawNext === 'to do') nextStatus = 'todo';
+    if (rawNext === 'in progress') nextStatus = 'in_progress';
 
-    // 2. Validate if provided status is a valid status
-    const validStatuses = Object.keys(ALLOWED_TRANSITIONS);
-    if (!validStatuses.includes(nextStatus)) {
-      return res.status(400).json({
-        message: `Invalid status. Allowed values: ${validStatuses.join(', ')}`
-      });
+    // Clean current ticket status
+    let currentStatus = (ticket.Status || 'todo').toLowerCase().trim();
+    if (currentStatus === 'ready to do' || currentStatus === 'to do') currentStatus = 'todo';
+    if (currentStatus === 'in progress') currentStatus = 'in_progress';
+
+    // Allowed transition map matching MySQL ENUM keys
+    const allowedTransitions = {
+      'todo': ['in_progress', 'blocked'],
+      'in_progress': ['todo', 'blocked', 'testing'],
+      'blocked': ['todo', 'in_progress'],
+      'testing': ['in_progress', 'done'],
+      'done': ['todo', 'in_progress']
+    };
+
+    if (currentStatus === nextStatus) {
+      return res.status(200).json({ message: 'Status already up to date', ticket });
     }
 
-    // 3. Check if transition is allowed
-    const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+    const allowedNext = allowedTransitions[currentStatus] || [];
     if (!allowedNext.includes(nextStatus)) {
       return res.status(400).json({
         message: `Cannot move ticket from '${currentStatus}' to '${nextStatus}'. Allowed moves: [${allowedNext.join(', ')}]`
       });
     }
 
-    // 4. Update status
+    // 2. Save into database
     ticket.Status = nextStatus;
     await ticket.save();
 
-    res.status(200).json({
+    console.log(`[PATCH Status] Ticket #${id} updated successfully to: ${nextStatus}`);
+
+    return res.status(200).json({
       message: `Ticket status successfully updated to '${nextStatus}'`,
       ticket
     });
   } catch (error) {
     console.error('Error updating ticket status:', error);
-    res.status(500).json({ message: 'Error updating ticket status', error: error.message });
+    return res.status(500).json({ message: 'Error updating ticket status', error: error.message });
   }
 };

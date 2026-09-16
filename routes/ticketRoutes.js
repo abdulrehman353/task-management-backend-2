@@ -35,7 +35,7 @@ const upload = require('../middlewares/upload'); // Multer Memory Storage Middle
  *                 type: string
  *               Status:
  *                 type: string
- *                 enum: [to do, in_progress, blocked, testing, done]
+ *                 enum: [todo, in_progress, blocked, testing, done]
  *               Priority:
  *                 type: string
  *                 enum: [low, medium, high]
@@ -94,7 +94,7 @@ router.get('/', authMiddleware, ticketController.getAllTickets);
  *                 type: string
  *               Status:
  *                 type: string
- *                 enum: [to do, in_progress, blocked, testing, done]
+ *                 enum: [todo, in_progress, blocked, testing, done]
  *               Priority:
  *                 type: string
  *                 enum: [low, medium, high]

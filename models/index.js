@@ -1,7 +1,9 @@
 const sequelize = require('../config/database');
 const { DataTypes } = require('sequelize');
 
+// ==========================================
 // 1. TABLES / MODELS DEFINITIONS
+// ==========================================
 
 // User Table
 const User = sequelize.define('User', {
@@ -20,6 +22,11 @@ const Organization = sequelize.define('Organization', {
   Email: { type: DataTypes.STRING, allowNull: true },
   Logo: { type: DataTypes.TEXT, allowNull: true }, 
   Theme: { type: DataTypes.STRING, defaultValue: 'light' },
+  OwnerID: { 
+    type: DataTypes.INTEGER, 
+    allowNull: true,
+    references: { model: 'Users', key: 'UserID' }
+  },
 });
 
 // Role Table
@@ -32,17 +39,33 @@ const Role = sequelize.define('Role', {
 // Permissions Table
 const Permissions = sequelize.define('Permissions', {
   PermissionID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  RoleID: { type: DataTypes.INTEGER, allowNull: true },
   PermissionName: { type: DataTypes.STRING, allowNull: false },
 });
 
-// OrganizationMembers Table
+// RolePermission Junction Table (Many-to-Many Mapping)
+const RolePermission = sequelize.define('RolePermission', {
+  RolePermissionID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  RoleID: { type: DataTypes.INTEGER, allowNull: false },
+  PermissionID: { type: DataTypes.INTEGER, allowNull: false },
+}, {
+  tableName: 'RolePermissions',
+  timestamps: true,
+});
+
+// OrganizationMembers Table (User + Org + Role Mapping)
 const OrganizationMembers = sequelize.define('OrganizationMembers', {
   OrganizationMemberID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  OrganizationID: { type: DataTypes.INTEGER, allowNull: false },
+  UserID: { type: DataTypes.INTEGER, allowNull: false },
+  RoleID: { type: DataTypes.INTEGER, allowNull: true },
 });
 
 // Project Table
 const Project = sequelize.define('Project', {
   ProjectID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  OrganizationID: { type: DataTypes.INTEGER, allowNull: false },
+  CreatedBy: { type: DataTypes.INTEGER, allowNull: true },
   Name: { type: DataTypes.STRING, allowNull: false },
   Description: { type: DataTypes.TEXT, allowNull: true },
   StartDate: { type: DataTypes.DATEONLY, allowNull: true },
@@ -52,11 +75,16 @@ const Project = sequelize.define('Project', {
 // ProjectMembers Table
 const ProjectMembers = sequelize.define('ProjectMembers', {
   ProjectMemberID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  ProjectID: { type: DataTypes.INTEGER, allowNull: false },
+  UserID: { type: DataTypes.INTEGER, allowNull: false },
 });
 
 // Tasks Table
 const Tasks = sequelize.define('Tasks', {
   TaskID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  ProjectID: { type: DataTypes.INTEGER, allowNull: false },
+  CreatedBy: { type: DataTypes.INTEGER, allowNull: true },
+  AssignedTo: { type: DataTypes.INTEGER, allowNull: true },
   Title: { type: DataTypes.STRING, allowNull: false },
   Description: { type: DataTypes.TEXT, allowNull: true },
   Status: { type: DataTypes.STRING, defaultValue: 'todo' },
@@ -67,10 +95,13 @@ const Tasks = sequelize.define('Tasks', {
 // Ticket Table
 const Ticket = sequelize.define('Ticket', {
   TicketID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  ProjectID: { type: DataTypes.INTEGER, allowNull: false },
+  CreatedByUserID: { type: DataTypes.INTEGER, allowNull: true },
+  AssignedToUserID: { type: DataTypes.INTEGER, allowNull: true },
   Title: { type: DataTypes.STRING, allowNull: false },
   Description: { type: DataTypes.TEXT, allowNull: true },
   Status: { 
-    type: DataTypes.ENUM('todo', 'in_progress','blocked', 'testing', 'done'), 
+    type: DataTypes.ENUM('todo', 'in_progress', 'blocked', 'testing', 'done'), 
     defaultValue: 'todo' 
   },
   Priority: { 
@@ -83,12 +114,16 @@ const Ticket = sequelize.define('Ticket', {
 // Comments Table
 const Comments = sequelize.define('Comments', {
   CommentID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  TaskID: { type: DataTypes.INTEGER, allowNull: true },
+  UserID: { type: DataTypes.INTEGER, allowNull: true },
   Comment: { type: DataTypes.TEXT, allowNull: false },
 });
 
 // Attachments Table
 const Attachments = sequelize.define('Attachments', {
   AttachmentID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  TaskID: { type: DataTypes.INTEGER, allowNull: true },
+  UploadedBy: { type: DataTypes.INTEGER, allowNull: true },
   FileName: { type: DataTypes.STRING, allowNull: false },
   UploadDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
 });
@@ -96,19 +131,26 @@ const Attachments = sequelize.define('Attachments', {
 // ActivityHistory Table
 const ActivityHistory = sequelize.define('ActivityHistory', {
   ActivityHistoryID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  TaskID: { type: DataTypes.INTEGER, allowNull: true },
+  UserID: { type: DataTypes.INTEGER, allowNull: true },
   Action: { type: DataTypes.STRING, allowNull: false },
   entity_type: { type: DataTypes.STRING, allowNull: true },
   entity_ID: { type: DataTypes.INTEGER, allowNull: true },
 });
 
+// ==========================================
 // 2. RELATIONSHIPS (FOREIGN KEYS SETUP)
+// ==========================================
 
+// Organization Owner Relation
+Organization.belongsTo(User, { foreignKey: 'OwnerID', as: 'Owner' });
+User.hasMany(Organization, { foreignKey: 'OwnerID', as: 'OwnedOrganizations' });
 
 // User & Organization Direct Link
 User.belongsTo(Organization, { foreignKey: 'OrganizationID' });
 Organization.hasMany(User, { foreignKey: 'OrganizationID' });
 
-// Organization Members (Mapping Table)
+// Organization Members (Mapping Table with Role)
 OrganizationMembers.belongsTo(Organization, { foreignKey: 'OrganizationID' });
 Organization.hasMany(OrganizationMembers, { foreignKey: 'OrganizationID' });
 
@@ -118,15 +160,30 @@ User.hasMany(OrganizationMembers, { foreignKey: 'UserID' });
 OrganizationMembers.belongsTo(Role, { foreignKey: 'RoleID' });
 Role.hasMany(OrganizationMembers, { foreignKey: 'RoleID' });
 
-// Role & Permissions
-Permissions.belongsTo(Role, { foreignKey: 'RoleID' });
-Role.hasMany(Permissions, { foreignKey: 'RoleID' });
+// Many-to-Many: Role <-> Permissions via RolePermission Junction Table
+Role.belongsToMany(Permissions, { 
+  through: RolePermission, 
+  foreignKey: 'RoleID', 
+  otherKey: 'PermissionID',
+  as: 'permissions'
+});
+Permissions.belongsToMany(Role, { 
+  through: RolePermission, 
+  foreignKey: 'PermissionID', 
+  otherKey: 'RoleID',
+  as: 'roles'
+});
+
+// Junction Table Direct Associations
+RolePermission.belongsTo(Role, { foreignKey: 'RoleID' });
+RolePermission.belongsTo(Permissions, { foreignKey: 'PermissionID' });
 
 // Project Relationships
 Project.belongsTo(Organization, { foreignKey: 'OrganizationID' });
 Organization.hasMany(Project, { foreignKey: 'OrganizationID' });
 
 Project.belongsTo(User, { foreignKey: 'CreatedBy' });
+User.hasMany(Project, { foreignKey: 'CreatedBy' });
 
 // Project Members
 ProjectMembers.belongsTo(Project, { foreignKey: 'ProjectID' });
@@ -164,7 +221,9 @@ Attachments.belongsTo(User, { foreignKey: 'UploadedBy' });
 ActivityHistory.belongsTo(Tasks, { foreignKey: 'TaskID' });
 ActivityHistory.belongsTo(User, { foreignKey: 'UserID' });
 
+// ==========================================
 // 3. EXPORT ALL MODELS
+// ==========================================
 
 module.exports = {
   sequelize,
@@ -172,6 +231,7 @@ module.exports = {
   Organization,
   Role,
   Permissions,
+  RolePermission,
   OrganizationMembers,
   Project,
   ProjectMembers,

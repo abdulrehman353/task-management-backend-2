@@ -140,4 +140,54 @@ router.delete('/:id', authMiddleware, roleController.deleteRole);
  */
 router.post('/assign', authMiddleware, roleController.assignRoleToUser);
 
+/**
+ * @swagger
+ * /api/roles/remove:
+ *   post:
+ *     summary: Remove role from user
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               UserID:
+ *                 type: integer
+ *               OrganizationID:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Role removed from user successfully
+ *       404:
+ *         description: User or Organization not found
+ */
+router.post('/remove', authMiddleware, roleController.removeRoleFromUser);
+
+/**
+ * @swagger
+ * /api/roles/{id}/permissions:
+ *   get:
+ *     summary: Get all permissions assigned to a role
+ *     tags: [Roles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Role ID
+ *     responses:
+ *       200:
+ *         description: List of permissions assigned to the role
+ *       404:
+ *         description: Role not found
+ */
+router.get('/:id/permissions', authMiddleware, roleController.getRolePermissions);
+
 module.exports = router;

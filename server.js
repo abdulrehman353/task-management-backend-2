@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
@@ -16,16 +17,18 @@ const userRoutes = require('./routes/userRoutes');
 const app = express();
 const uploadRoutes = require('./routes/uploadRoutes');
 
-app.use(express.json());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
+app.use(express.json());
 app.use('/api/users', userRoutes);
-app.use('/api/roles', roleRoutes);                
+app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
 
 app.use('/api', uploadRoutes);
-
-
-// Swagger UI Endpoint
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/auth', authRoutes);
@@ -40,15 +43,13 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-sequelize
-  .sync()
+sequelize.sync()
   .then(() => {
-    console.log('Database connected and synced successfully!');
+    console.log('Database synced & connected successfully.');
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Swagger Docs available at http://localhost:${PORT}/api-docs`);
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Unable to connect to the database:', err);
+    console.error('Database sync failed:', err);
   });

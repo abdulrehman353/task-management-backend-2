@@ -26,6 +26,8 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *                 type: string
  *               Theme:
  *                 type: string
+ *               OwnerID:
+ *                 type: integer
  *     responses:
  *       201:
  *         description: Organization created successfully
@@ -76,6 +78,8 @@ router.get('/', authMiddleware, orgController.getAllOrganizations);
  *                 type: string
  *               Theme:
  *                 type: string
+ *               OwnerID:
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Organization updated successfully
@@ -122,6 +126,8 @@ router.delete('/:id', authMiddleware, orgController.deleteOrganization);
  *               UserID:
  *                 type: integer
  *               OrganizationID:
+ *                 type: integer
+ *               RoleID:
  *                 type: integer
  *     responses:
  *       200:
