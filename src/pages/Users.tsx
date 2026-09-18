@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axiosClient from '../api/axiosClient';
-import { Users as UsersIcon, Shield, Mail, Calendar, AlertCircle } from 'lucide-react';
+import { 
+  Users as UsersIcon, 
+  Shield, 
+  Mail, 
+  Calendar, 
+  AlertCircle,
+  Sparkles
+} from 'lucide-react';
 
 interface UserItem {
   id?: number;
@@ -77,34 +84,76 @@ export default function Users() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: '#0f172a' }}>System Users</h2>
-        <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '14px' }}>
-          View registered team members and allocate security roles.
+    <div style={styles.pageContainer}>
+      <style>{`
+        .users-table-card {
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(226, 232, 240, 0.85);
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+        }
+        .user-select-glow:focus {
+          background: #ffffff !important;
+          border-color: #10b981 !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        }
+        .emerald-assign-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px -2px rgba(16, 185, 129, 0.35) !important;
+        }
+        .users-table-row {
+          transition: background-color 0.15s ease;
+        }
+        .users-table-row:hover {
+          background-color: rgba(248, 250, 252, 0.8);
+        }
+      `}</style>
+
+      {/* Header Section */}
+      <div style={styles.headerSection}>
+        <div style={styles.pillBadge}>
+          <Sparkles size={11} color="#059669" />
+          <span>USER & ACCESS ALLOCATION</span>
+        </div>
+        <h2 style={styles.pageTitle}>System Users</h2>
+        <p style={styles.pageSubtitle}>
+          View registered accounts, verify credentials, and allocate corporate security roles.
         </p>
       </div>
 
       {error && (
         <div style={styles.errorBox}>
-          <AlertCircle size={18} />
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
 
+      {/* Main Table */}
       {loading ? (
-        <p style={{ color: '#64748b' }}>Loading registered users...</p>
+        <div style={styles.loadingBox}>
+          <div style={styles.spinner} />
+          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Syncing user accounts...</p>
+        </div>
       ) : users.length === 0 ? (
-        <div style={styles.emptyBox}>No users found.</div>
+        <div style={styles.emptyBox}>
+          <UsersIcon size={36} color="#cbd5e1" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No registered users found</h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+            New registered members will appear here for role allocation.
+          </p>
+        </div>
       ) : (
-        <div style={styles.tableCard}>
+        <div className="users-table-card">
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeadRow}>
-                <th style={styles.th}>User</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>Date of Birth</th>
-                <th style={styles.th}>Assign Role</th>
+                <th style={{ ...styles.th, width: '28%' }}>User Profile</th>
+                <th style={{ ...styles.th, width: '32%' }}>Email Address</th>
+                <th style={{ ...styles.th, width: '18%' }}>Date of Birth</th>
+                <th style={{ ...styles.th, width: '22%', textAlign: 'right' }}>Role Assignment</th>
               </tr>
             </thead>
             <tbody>
@@ -113,39 +162,45 @@ export default function Users() {
                 const uName = u.name ?? u.Name ?? 'Unnamed';
                 const uEmail = u.email ?? u.Email ?? 'N/A';
                 const uDob = u.Date_of_birth ? u.Date_of_birth.slice(0, 10) : 'Not specified';
+                const initialChar = uName.charAt(0).toUpperCase();
 
                 return (
-                  <tr key={uId} style={styles.tableRow}>
+                  <tr key={uId} className="users-table-row" style={styles.tableRow}>
                     <td style={styles.td}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={styles.avatar}>
-                          <UsersIcon size={16} color="#2563eb" />
+                          {initialChar}
                         </div>
                         <div>
-                          <strong style={{ color: '#1e293b' }}>{uName}</strong>
-                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>ID: #{uId}</div>
+                          <strong style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>
+                            {uName}
+                          </strong>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                            User ID #{uId}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td style={styles.td}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                        <Mail size={14} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13.5px' }}>
+                        <Mail size={14} color="#94a3b8" />
                         <span>{uEmail}</span>
                       </div>
                     </td>
                     <td style={styles.td}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                        <Calendar size={14} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '13px' }}>
+                        <Calendar size={14} color="#94a3b8" />
                         <span>{uDob}</span>
                       </div>
                     </td>
-                    <td style={styles.td}>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <td style={{ ...styles.td, textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
                         <select
                           value={selectedRoles[uId] || ''}
                           onChange={(e) =>
                             setSelectedRoles({ ...selectedRoles, [uId]: e.target.value })
                           }
+                          className="user-select-glow"
                           style={styles.select}
                         >
                           <option value="" style={{ color: '#0f172a', backgroundColor: '#ffffff' }}>
@@ -161,8 +216,13 @@ export default function Users() {
                             );
                           })}
                         </select>
-                        <button onClick={() => handleRoleAssign(uId)} style={styles.assignBtn}>
-                          <Shield size={14} />
+                        <button 
+                          onClick={() => handleRoleAssign(uId)} 
+                          className="emerald-assign-btn" 
+                          style={styles.assignBtn}
+                          title="Assign selected role to user"
+                        >
+                          <Shield size={14} strokeWidth={2.2} />
                           <span>Assign</span>
                         </button>
                       </div>
@@ -179,11 +239,39 @@ export default function Users() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  tableCard: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '8px',
-    overflow: 'hidden',
+  pageContainer: {
+    maxWidth: '1280px',
+    margin: '0 auto',
+  },
+  headerSection: {
+    marginBottom: '22px',
+  },
+  pillBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '10.5px',
+    fontWeight: 700,
+    letterSpacing: '0.07em',
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '3px 10px',
+    borderRadius: '20px',
+    marginBottom: '8px',
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: '26px',
+    fontWeight: 800,
+    color: '#0f172a',
+    letterSpacing: '-0.025em',
+  },
+  pageSubtitle: {
+    margin: '6px 0 0 0',
+    color: '#64748b',
+    fontSize: '14px',
+    lineHeight: 1.5,
   },
   table: {
     width: '100%',
@@ -196,64 +284,93 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderBottom: '1px solid #e2e8f0',
   },
   th: {
-    padding: '12px 16px',
+    padding: '14px 20px',
     color: '#475569',
-    fontWeight: 600,
-    fontSize: '13px',
+    fontWeight: 700,
+    fontSize: '12.5px',
+    letterSpacing: '0.03em',
+    textTransform: 'uppercase',
   },
   tableRow: {
     borderBottom: '1px solid #f1f5f9',
   },
   td: {
-    padding: '14px 16px',
+    padding: '15px 20px',
     verticalAlign: 'middle',
   },
   avatar: {
-    backgroundColor: '#eff6ff',
-    padding: '8px',
-    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: '#ffffff',
+    fontWeight: 700,
+    fontSize: '14px',
+    width: '36px',
+    height: '36px',
+    borderRadius: '11px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: '0 4px 10px -2px rgba(16, 185, 129, 0.35)',
+    flexShrink: 0,
   },
   select: {
-    padding: '6px 10px',
-    borderRadius: '6px',
+    padding: '8px 12px',
+    borderRadius: '10px',
     border: '1px solid #cbd5e1',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     color: '#0f172a',
     fontSize: '13px',
     outline: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
   },
   assignBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
-    padding: '6px 12px',
-    backgroundColor: '#2563eb',
+    gap: '6px',
+    padding: '8px 14px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '6px',
+    borderRadius: '10px',
     fontSize: '13px',
     cursor: 'pointer',
-    fontWeight: 500,
+    fontWeight: 600,
+    boxShadow: '0 4px 12px -2px rgba(16, 185, 129, 0.3)',
+    transition: 'all 0.2s ease',
   },
   emptyBox: {
-    padding: '40px',
+    padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: '16px',
     border: '1px dashed #cbd5e1',
-    color: '#94a3b8',
+  },
+  loadingBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    padding: '60px 0',
+  },
+  spinner: {
+    width: '32px',
+    height: '32px',
+    border: '3px solid #ecfdf5',
+    borderTop: '3px solid #10b981',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
   },
   errorBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    backgroundColor: '#fee2e2',
+    gap: '10px',
+    backgroundColor: '#fef2f2',
     color: '#b91c1c',
-    padding: '12px',
-    borderRadius: '6px',
-    marginBottom: '16px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: '1px solid #fee2e2',
+    marginBottom: '20px',
+    fontSize: '13.5px',
   },
 };

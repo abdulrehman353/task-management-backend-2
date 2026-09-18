@@ -11,7 +11,8 @@ import {
   UserPlus, 
   UserMinus, 
   UserCheck,
-  ChevronRight
+  Sparkles,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface Organization {
@@ -68,7 +69,7 @@ export default function Organizations() {
     }
   };
 
-  // 2. Update/Rename Organization (PUT /api/orgs/{id})
+  // 2. Update/Rename Organization
   const handleUpdate = async (orgId: number, currentName: string) => {
     const updatedName = window.prompt('Enter new organization name:', currentName);
     if (!updatedName || updatedName.trim() === '' || updatedName === currentName) return;
@@ -81,7 +82,7 @@ export default function Organizations() {
     }
   };
 
-  // 3. Delete Organization (DELETE /api/orgs/{id})
+  // 3. Delete Organization
   const handleDelete = async (orgId: number) => {
     if (!window.confirm('Are you sure you want to delete this organization?')) return;
     try {
@@ -97,7 +98,7 @@ export default function Organizations() {
     setMemberInputs((prev) => ({ ...prev, [orgId]: val }));
   };
 
-  // 4. Assign User to Organization (POST /api/orgs/assign-user)
+  // 4. Assign User to Organization
   const handleAssignUser = async (orgId: number) => {
     const userId = memberInputs[orgId];
     if (!userId) return alert('Please enter a User ID first.');
@@ -116,7 +117,7 @@ export default function Organizations() {
     }
   };
 
-  // 5. Remove User from Organization (POST /api/orgs/remove-user)
+  // 5. Remove User from Organization
   const handleRemoveUser = async (orgId: number) => {
     const userId = memberInputs[orgId];
     if (!userId) return alert('Please enter a User ID first.');
@@ -135,7 +136,7 @@ export default function Organizations() {
     }
   };
 
-  // 6. Transfer Owner (POST /api/orgs/transfer-owner)
+  // 6. Transfer Owner
   const handleTransferOwner = async (orgId: number) => {
     const newOwnerId = memberInputs[orgId];
     if (!newOwnerId) return alert('Please enter the new Owner User ID.');
@@ -163,11 +164,57 @@ export default function Organizations() {
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div style={styles.pageContainer}>
+      <style>{`
+        .org-card-glass {
+          background: rgba(255, 255, 255, 0.86);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(226, 232, 240, 0.85);
+          border-radius: 20px;
+          padding: 22px 20px;
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+          position: relative;
+          overflow: hidden;
+        }
+        .org-card-glass:hover {
+          transform: translateY(-4px);
+          border-color: rgba(16, 185, 129, 0.5);
+          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.18), 0 6px 12px -4px rgba(15, 23, 42, 0.04);
+        }
+        .org-create-input:focus {
+          background: #ffffff !important;
+          border-color: #10b981 !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        }
+        .org-create-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 20px -4px rgba(16, 185, 129, 0.45) !important;
+        }
+        .card-action-btn:hover {
+          background-color: #f1f5f9 !important;
+          transform: scale(1.08);
+        }
+        .member-action-btn:hover {
+          filter: brightness(0.96);
+          transform: translateY(-1px);
+        }
+      `}</style>
+
+      {/* Header Banner */}
+      <div style={styles.headerSection}>
         <div>
-          <h2 style={{ margin: 0, color: '#0f172a' }}>Organizations</h2>
-          <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '14px' }}>
+          <div style={styles.pillBadge}>
+            <Sparkles size={11} color="#059669" />
+            <span>ORGANIZATIONAL WORKSPACES</span>
+          </div>
+          <h2 style={styles.pageTitle}>Organizations</h2>
+          <p style={styles.pageSubtitle}>
             Manage workspace organizations, controls, and team allocation. Click an organization to view its projects.
           </p>
         </div>
@@ -175,17 +222,30 @@ export default function Organizations() {
 
       {/* Quick Add Form */}
       <form onSubmit={handleCreate} style={styles.formCard}>
-        <input
-          type="text"
-          placeholder="New Organization Name..."
-          value={orgName}
-          onChange={(e) => setOrgName(e.target.value)}
-          required
-          style={styles.input}
-        />
-        <button type="submit" disabled={creating} style={styles.createBtn}>
-          <Plus size={18} />
-          <span>{creating ? 'Creating...' : 'Create Organization'}</span>
+        <div style={styles.formInputWrapper}>
+          <Building2 size={18} color="#94a3b8" style={styles.formIcon} />
+          <input
+            type="text"
+            placeholder="Enter new organization name..."
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
+            required
+            className="org-create-input"
+            style={styles.input}
+          />
+        </div>
+        <button 
+          type="submit" 
+          disabled={creating} 
+          className="org-create-btn" 
+          style={{
+            ...styles.createBtn,
+            opacity: creating ? 0.75 : 1,
+            cursor: creating ? 'not-allowed' : 'pointer'
+          }}
+        >
+          <Plus size={18} strokeWidth={2.4} />
+          <span>{creating ? 'Creating...' : 'Create Workspace'}</span>
         </button>
       </form>
 
@@ -198,9 +258,16 @@ export default function Organizations() {
 
       {/* Organizations Grid */}
       {loading ? (
-        <p style={{ color: '#64748b' }}>Loading organizations...</p>
+        <div style={styles.loadingBox}>
+          <div style={styles.spinner} />
+          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Fetching workspaces...</p>
+        </div>
       ) : orgs.length === 0 ? (
-        <div style={styles.emptyBox}>No organizations found. Create one above to get started.</div>
+        <div style={styles.emptyBox}>
+          <Building2 size={32} color="#cbd5e1" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No organizations found</h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Create your first workspace using the input field above.</p>
+        </div>
       ) : (
         <div style={styles.grid}>
           {orgs.map((org, index) => {
@@ -211,95 +278,104 @@ export default function Organizations() {
             return (
               <div 
                 key={orgId} 
-                style={styles.orgCard}
+                className="org-card-glass"
                 onClick={() => handleCardClick(orgId, orgNameStr)}
               >
-                {/* Card Top: Name, ID, Edit, Delete */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={styles.iconWrapper}>
-                      <Building2 size={22} color="#2563eb" />
+                {/* Top: Icon, Details, Controls */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={styles.iconWrapper}>
+                        <Building2 size={20} color="#059669" strokeWidth={2.2} />
+                      </div>
+                      <div>
+                        <h4 style={styles.cardHeading}>{orgNameStr}</h4>
+                        <span style={styles.idBadge}>ID #{orgId}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 style={{ margin: 0, color: '#1e293b' }}>{orgNameStr}</h4>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>ID: #{orgId}</span>
+
+                    <div style={{ display: 'flex', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        onClick={() => handleUpdate(orgId, orgNameStr)} 
+                        className="card-action-btn"
+                        style={styles.actionIconBtn} 
+                        title="Rename Organization"
+                      >
+                        <Edit3 size={15} color="#64748b" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(orgId)} 
+                        className="card-action-btn"
+                        style={styles.actionIconBtn} 
+                        title="Delete Organization"
+                      >
+                        <Trash2 size={15} color="#ef4444" />
+                      </button>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
-                    <button 
-                      onClick={() => handleUpdate(orgId, orgNameStr)} 
-                      style={styles.actionIconBtn} 
-                      title="Rename Organization"
-                    >
-                      <Edit3 size={15} color="#64748b" />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(orgId)} 
-                      style={styles.actionIconBtn} 
-                      title="Delete Organization"
-                    >
-                      <Trash2 size={15} color="#ef4444" />
-                    </button>
+                  {/* Owner Row */}
+                  <div style={styles.ownerRow}>
+                    <Users size={14} color="#64748b" />
+                    <span>Owner ID: <strong style={{ color: '#0f172a' }}>{ownerId}</strong></span>
+                  </div>
+
+                  {/* Member Allocation Sub-panel */}
+                  <div style={styles.memberBox} onClick={(e) => e.stopPropagation()}>
+                    <label style={styles.memberLabel}>Manage Members & Ownership</label>
+                    <div style={{ marginBottom: '8px' }}>
+                      <input
+                        type="number"
+                        placeholder="Target User ID..."
+                        value={memberInputs[orgId] || ''}
+                        onChange={(e) => handleInputChange(orgId, e.target.value)}
+                        style={styles.memberInput}
+                      />
+                    </div>
+
+                    <div style={styles.memberButtons}>
+                      <button 
+                        type="button" 
+                        onClick={() => handleAssignUser(orgId)} 
+                        className="member-action-btn"
+                        style={{ ...styles.memberActionBtn, backgroundColor: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
+                        title="Assign user to this Org"
+                      >
+                        <UserPlus size={13} />
+                        <span>Assign</span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => handleRemoveUser(orgId)} 
+                        className="member-action-btn"
+                        style={{ ...styles.memberActionBtn, backgroundColor: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
+                        title="Remove user from this Org"
+                      >
+                        <UserMinus size={13} />
+                        <span>Remove</span>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => handleTransferOwner(orgId)} 
+                        className="member-action-btn"
+                        style={{ ...styles.memberActionBtn, backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}
+                        title="Transfer Ownership to this user"
+                      >
+                        <UserCheck size={13} />
+                        <span>Transfer</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Owner Tag */}
-                <div style={styles.ownerRow}>
-                  <Users size={15} />
-                  <span>Owner ID: <strong>{ownerId}</strong></span>
-                </div>
-
-                {/* Member Allocation Section */}
-                <div style={styles.memberBox} onClick={(e) => e.stopPropagation()}>
-                  <label style={styles.memberLabel}>Manage Members & Ownership</label>
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                    <input
-                      type="number"
-                      placeholder="Target User ID..."
-                      value={memberInputs[orgId] || ''}
-                      onChange={(e) => handleInputChange(orgId, e.target.value)}
-                      style={styles.memberInput}
-                    />
-                  </div>
-
-                  <div style={styles.memberButtons}>
-                    <button 
-                      type="button" 
-                      onClick={() => handleAssignUser(orgId)} 
-                      style={{ ...styles.memberActionBtn, backgroundColor: '#eff6ff', color: '#2563eb' }}
-                      title="Assign user to this Org"
-                    >
-                      <UserPlus size={13} />
-                      <span>Assign</span>
-                    </button>
-
-                    <button 
-                      type="button" 
-                      onClick={() => handleRemoveUser(orgId)} 
-                      style={{ ...styles.memberActionBtn, backgroundColor: '#fef2f2', color: '#dc2626' }}
-                      title="Remove user from this Org"
-                    >
-                      <UserMinus size={13} />
-                      <span>Remove</span>
-                    </button>
-
-                    <button 
-                      type="button" 
-                      onClick={() => handleTransferOwner(orgId)} 
-                      style={{ ...styles.memberActionBtn, backgroundColor: '#f0fdf4', color: '#16a34a' }}
-                      title="Transfer Ownership to this user"
-                    >
-                      <UserCheck size={13} />
-                      <span>Transfer</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* View Projects Prompt Bar */}
+                {/* Footer Action Prompt */}
                 <div style={styles.footerPrompt}>
-                  <span>View Projects</span>
-                  <ChevronRight size={15} />
+                  <span>Explore Projects</span>
+                  <div style={styles.arrowCircle}>
+                    <ArrowUpRight size={14} color="#059669" strokeWidth={2.4} />
+                  </div>
                 </div>
               </div>
             );
@@ -311,102 +387,167 @@ export default function Organizations() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
+  pageContainer: {
+    maxWidth: '1280px',
+    margin: '0 auto',
+  },
+  headerSection: {
+    marginBottom: '22px',
+  },
+  pillBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '10.5px',
+    fontWeight: 700,
+    letterSpacing: '0.07em',
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '3px 10px',
+    borderRadius: '20px',
+    marginBottom: '8px',
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: '26px',
+    fontWeight: 800,
+    color: '#0f172a',
+    letterSpacing: '-0.025em',
+  },
+  pageSubtitle: {
+    margin: '6px 0 0 0',
+    color: '#64748b',
+    fontSize: '14px',
+    lineHeight: 1.5,
+  },
   formCard: {
     display: 'flex',
     gap: '12px',
-    backgroundColor: '#ffffff',
-    padding: '16px',
-    borderRadius: '8px',
-    border: '1px solid #e2e8f0',
-    marginBottom: '24px',
+    background: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    padding: '14px 16px',
+    borderRadius: '16px',
+    border: '1px solid rgba(226, 232, 240, 0.85)',
+    boxShadow: '0 8px 20px -4px rgba(15, 23, 42, 0.04)',
+    marginBottom: '26px',
     boxSizing: 'border-box',
   },
-  input: {
+  formInputWrapper: {
+    position: 'relative',
     flex: 1,
-    padding: '10px 14px',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  formIcon: {
+    position: 'absolute',
+    left: '14px',
+    pointerEvents: 'none',
+  },
+  input: {
+    width: '100%',
+    padding: '12px 14px 12px 42px',
     border: '1px solid #cbd5e1',
-    borderRadius: '6px',
+    borderRadius: '12px',
     fontSize: '14px',
     outline: 'none',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(248, 250, 252, 0.8)',
     color: '#0f172a',
     boxSizing: 'border-box',
+    transition: 'all 0.2s ease',
   },
   createBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#2563eb',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    padding: '10px 18px',
-    borderRadius: '6px',
+    padding: '12px 20px',
+    borderRadius: '12px',
     fontWeight: 600,
+    fontSize: '14px',
     cursor: 'pointer',
     flexShrink: 0,
+    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    transition: 'all 0.2s ease',
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-    gap: '16px',
-  },
-  orgCard: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '8px',
-    padding: '18px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))',
+    gap: '20px',
   },
   iconWrapper: {
-    backgroundColor: '#eff6ff',
-    padding: '10px',
-    borderRadius: '6px',
+    width: '42px',
+    height: '42px',
+    borderRadius: '12px',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  cardHeading: {
+    margin: 0,
+    fontSize: '16px',
+    fontWeight: 700,
+    color: '#0f172a',
+    letterSpacing: '-0.01em',
+  },
+  idBadge: {
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#94a3b8',
   },
   actionIconBtn: {
-    background: 'none',
+    background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    padding: '4px',
-    borderRadius: '4px',
+    padding: '6px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.15s ease',
   },
   ownerRow: {
     margin: '14px 0',
     borderTop: '1px solid #f1f5f9',
     paddingTop: '10px',
-    fontSize: '13px',
+    fontSize: '12.5px',
     color: '#64748b',
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '7px',
   },
   memberBox: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: 'rgba(248, 250, 252, 0.8)',
     padding: '12px',
-    borderRadius: '6px',
+    borderRadius: '12px',
     border: '1px solid #e2e8f0',
   },
   memberLabel: {
     display: 'block',
-    fontSize: '11px',
-    fontWeight: 600,
+    fontSize: '10.5px',
+    fontWeight: 700,
+    letterSpacing: '0.05em',
     textTransform: 'uppercase',
     color: '#64748b',
     marginBottom: '8px',
   },
   memberInput: {
     width: '100%',
-    padding: '8px 10px',
+    padding: '9px 12px',
     fontSize: '13px',
     border: '1px solid #cbd5e1',
-    borderRadius: '4px',
+    borderRadius: '8px',
     outline: 'none',
     backgroundColor: '#ffffff',
     color: '#0f172a',
     boxSizing: 'border-box',
+    transition: 'border-color 0.15s ease',
   },
   memberButtons: {
     display: 'flex',
@@ -418,41 +559,66 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    border: 'none',
-    padding: '6px 8px',
-    borderRadius: '4px',
-    fontSize: '12px',
+    padding: '7px 8px',
+    borderRadius: '8px',
+    fontSize: '11.5px',
     fontWeight: 600,
     cursor: 'pointer',
-  },
-  emptyBox: {
-    padding: '40px',
-    textAlign: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    border: '1px dashed #cbd5e1',
-    color: '#94a3b8',
-  },
-  errorBanner: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    backgroundColor: '#fee2e2',
-    color: '#b91c1c',
-    padding: '10px',
-    borderRadius: '6px',
-    marginBottom: '16px',
-    fontSize: '14px',
+    transition: 'all 0.15s ease',
   },
   footerPrompt: {
-    marginTop: '12px',
-    paddingTop: '10px',
+    marginTop: '16px',
+    paddingTop: '12px',
     borderTop: '1px dashed #e2e8f0',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    fontSize: '12px',
-    fontWeight: 600,
-    color: '#2563eb',
+    fontSize: '12.5px',
+    fontWeight: 700,
+    color: '#059669',
+  },
+  arrowCircle: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    backgroundColor: '#ecfdf5',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyBox: {
+    padding: '50px 20px',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: '16px',
+    border: '1px dashed #cbd5e1',
+  },
+  loadingBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    padding: '60px 0',
+  },
+  spinner: {
+    width: '32px',
+    height: '32px',
+    border: '3px solid #ecfdf5',
+    borderTop: '3px solid #10b981',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+  errorBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    backgroundColor: '#fef2f2',
+    color: '#b91c1c',
+    border: '1px solid #fee2e2',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    marginBottom: '20px',
+    fontSize: '13.5px',
   },
 };

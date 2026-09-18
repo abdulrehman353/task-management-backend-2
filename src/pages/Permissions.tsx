@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axiosClient from '../api/axiosClient';
-import { KeyRound, Plus, Trash2, AlertCircle, Link2 } from 'lucide-react';
+import { 
+  KeyRound, 
+  Plus, 
+  Trash2, 
+  AlertCircle, 
+  Link2,
+  Sparkles,
+  ShieldCheck
+} from 'lucide-react';
 
 interface PermissionItem {
   PermissionID?: number;
@@ -100,43 +108,114 @@ export default function Permissions() {
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, color: '#0f172a' }}>Permissions Management</h2>
-        <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '14px' }}>
-          Create system capabilities and bind them to specific access roles.
+    <div style={styles.pageContainer}>
+      <style>{`
+        .perm-card-glass {
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(226, 232, 240, 0.85);
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.04);
+        }
+        .perm-table-card {
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(226, 232, 240, 0.85);
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+        }
+        .perm-input-glow:focus {
+          background: #ffffff !important;
+          border-color: #10b981 !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+        }
+        .emerald-submit-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 16px -3px rgba(16, 185, 129, 0.38) !important;
+        }
+        .slate-bind-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          background-color: #0f172a !important;
+          box-shadow: 0 8px 16px -3px rgba(15, 23, 42, 0.25) !important;
+        }
+        .perm-table-row {
+          transition: background-color 0.15s ease;
+        }
+        .perm-table-row:hover {
+          background-color: rgba(248, 250, 252, 0.8);
+        }
+        .del-action-hover:hover {
+          background-color: #fef2f2 !important;
+          transform: scale(1.08);
+        }
+      `}</style>
+
+      {/* Header Banner */}
+      <div style={styles.headerSection}>
+        <div style={styles.pillBadge}>
+          <Sparkles size={11} color="#059669" />
+          <span>CAPABILITY MAPPING</span>
+        </div>
+        <h2 style={styles.pageTitle}>Permissions Management</h2>
+        <p style={styles.pageSubtitle}>
+          Define discrete system capabilities and bind them to specific access roles.
         </p>
       </div>
 
-      {/* Top Action Row: Create Permission & Assign to Role */}
+      {/* Dual Action Grid: Create & Map */}
       <div style={styles.topCardsGrid}>
-        <form onSubmit={handleCreate} style={styles.cardBox}>
-          <label style={styles.cardHeaderTitle}>Create New Permission</label>
+        <form onSubmit={handleCreate} className="perm-card-glass">
+          <div style={styles.cardHeader}>
+            <div style={styles.cardIconBox}>
+              <Plus size={16} color="#059669" strokeWidth={2.4} />
+            </div>
+            <label style={styles.cardHeaderTitle}>Create New Permission</label>
+          </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input
               type="text"
-              placeholder="e.g. ticket:delete..."
+              placeholder="e.g. ticket:delete, project:export..."
               value={permName}
               onChange={(e) => setPermName(e.target.value)}
               required
+              className="perm-input-glow"
               style={styles.input}
             />
-            <button type="submit" disabled={creating} style={styles.primaryBtn}>
-              <Plus size={16} />
-              <span>{creating ? 'Creating...' : 'Create'}</span>
+            <button 
+              type="submit" 
+              disabled={creating} 
+              className="emerald-submit-btn" 
+              style={{
+                ...styles.primaryBtn,
+                opacity: creating ? 0.75 : 1,
+                cursor: creating ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <Plus size={16} strokeWidth={2.4} />
+              <span>{creating ? 'Adding...' : 'Create'}</span>
             </button>
           </div>
         </form>
 
-        <form onSubmit={handleAssignToRole} style={styles.cardBox}>
-          <label style={styles.cardHeaderTitle}>Assign Permission to Role</label>
-          <div style={{ display: 'flex', gap: '8px' }}>
+        <form onSubmit={handleAssignToRole} className="perm-card-glass">
+          <div style={styles.cardHeader}>
+            <div style={styles.cardIconBox}>
+              <Link2 size={16} color="#059669" strokeWidth={2.4} />
+            </div>
+            <label style={styles.cardHeaderTitle}>Bind Permission to Role</label>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
+              className="perm-input-glow"
               style={styles.select}
             >
-              <option value="">Select Role</option>
+              <option value="">Select Target Role</option>
               {roles.map((r) => {
                 const id = r.RoleID ?? r.id ?? r.role_id;
                 return (
@@ -150,6 +229,7 @@ export default function Permissions() {
             <select
               value={selectedPerm}
               onChange={(e) => setSelectedPerm(e.target.value)}
+              className="perm-input-glow"
               style={styles.select}
             >
               <option value="">Select Permission</option>
@@ -163,9 +243,18 @@ export default function Permissions() {
               })}
             </select>
 
-            <button type="submit" disabled={binding} style={styles.assignBtn}>
-              <Link2 size={16} />
-              <span>{binding ? 'Assigning...' : 'Assign'}</span>
+            <button 
+              type="submit" 
+              disabled={binding} 
+              className="slate-bind-btn" 
+              style={{
+                ...styles.assignBtn,
+                opacity: binding ? 0.75 : 1,
+                cursor: binding ? 'not-allowed' : 'pointer'
+              }}
+            >
+              <Link2 size={15} />
+              <span>{binding ? 'Binding...' : 'Map'}</span>
             </button>
           </div>
         </form>
@@ -173,28 +262,40 @@ export default function Permissions() {
 
       {error && (
         <div style={styles.errorBox}>
-          <AlertCircle size={18} />
+          <AlertCircle size={18} style={{ flexShrink: 0 }} />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Permissions Table */}
-      <h3 style={{ margin: '20px 0 10px 0', fontSize: '16px', color: '#1e293b' }}>
-        Registered Permissions ({permissions.length})
-      </h3>
+      {/* Permissions Table Section */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '26px 0 12px 0' }}>
+        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+          Registered Capabilities
+        </h3>
+        <span style={styles.countTag}>{permissions.length} Active Rules</span>
+      </div>
 
       {loading ? (
-        <p style={{ color: '#64748b' }}>Loading permissions...</p>
+        <div style={styles.loadingBox}>
+          <div style={styles.spinner} />
+          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Syncing permissions data...</p>
+        </div>
       ) : permissions.length === 0 ? (
-        <div style={styles.emptyBox}>No permissions found. Create one above.</div>
+        <div style={styles.emptyBox}>
+          <ShieldCheck size={36} color="#cbd5e1" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No permissions registered</h4>
+          <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+            Declare your first system permission using the input panel above.
+          </p>
+        </div>
       ) : (
-        <div style={styles.tableCard}>
+        <div className="perm-table-card">
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeadRow}>
-                <th style={{ ...styles.th, width: '15%' }}>Permission ID</th>
+                <th style={{ ...styles.th, width: '16%' }}>Rule ID</th>
                 <th style={{ ...styles.th, width: '70%' }}>Capability Name</th>
-                <th style={{ ...styles.th, width: '15%', textAlign: 'right' }}>Actions</th>
+                <th style={{ ...styles.th, width: '14%', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -203,14 +304,14 @@ export default function Permissions() {
                 const pName = p.PermissionName ?? p.name ?? 'unnamed';
 
                 return (
-                  <tr key={pId} style={styles.tableRow}>
+                  <tr key={pId} className="perm-table-row" style={styles.tableRow}>
                     <td style={styles.td}>
                       <span style={styles.idBadge}>#{pId}</span>
                     </td>
                     <td style={styles.td}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={styles.avatar}>
-                          <KeyRound size={15} color="#2563eb" />
+                          <KeyRound size={15} color="#059669" strokeWidth={2.2} />
                         </div>
                         <code style={styles.permCode}>{pName}</code>
                       </div>
@@ -218,6 +319,7 @@ export default function Permissions() {
                     <td style={{ ...styles.td, textAlign: 'right' }}>
                       <button
                         onClick={() => handleDelete(pId)}
+                        className="del-action-hover"
                         style={styles.deleteBtn}
                         title="Delete Permission"
                       >
@@ -236,76 +338,129 @@ export default function Permissions() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
+  pageContainer: {
+    maxWidth: '1280px',
+    margin: '0 auto',
+  },
+  headerSection: {
+    marginBottom: '22px',
+  },
+  pillBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '10.5px',
+    fontWeight: 700,
+    letterSpacing: '0.07em',
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '3px 10px',
+    borderRadius: '20px',
+    marginBottom: '8px',
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: '26px',
+    fontWeight: 800,
+    color: '#0f172a',
+    letterSpacing: '-0.025em',
+  },
+  pageSubtitle: {
+    margin: '6px 0 0 0',
+    color: '#64748b',
+    fontSize: '14px',
+    lineHeight: 1.5,
+  },
   topCardsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-    gap: '16px',
+    gap: '18px',
     marginBottom: '20px',
   },
-  cardBox: {
-    backgroundColor: '#ffffff',
-    padding: '16px',
+  cardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '12px',
+  },
+  cardIconBox: {
+    width: '28px',
+    height: '28px',
     borderRadius: '8px',
-    border: '1px solid #e2e8f0',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardHeaderTitle: {
-    display: 'block',
-    fontSize: '13px',
-    fontWeight: 600,
+    fontSize: '13.5px',
+    fontWeight: 700,
     color: '#0f172a',
-    marginBottom: '10px',
   },
   input: {
     flex: 1,
-    padding: '8px 12px',
+    padding: '11px 14px',
     border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    fontSize: '13px',
+    borderRadius: '10px',
+    fontSize: '13.5px',
     outline: 'none',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(248, 250, 252, 0.8)',
     color: '#0f172a',
+    boxSizing: 'border-box',
+    transition: 'all 0.15s ease',
   },
   select: {
     flex: 1,
-    padding: '8px 10px',
-    borderRadius: '6px',
+    minWidth: '140px',
+    padding: '11px 12px',
+    borderRadius: '10px',
     border: '1px solid #cbd5e1',
     fontSize: '13px',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(248, 250, 252, 0.8)',
     color: '#0f172a',
     outline: 'none',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
   },
   primaryBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#2563eb',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    padding: '8px 16px',
-    borderRadius: '6px',
+    padding: '11px 18px',
+    borderRadius: '10px',
     fontWeight: 600,
     cursor: 'pointer',
     fontSize: '13px',
+    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    transition: 'all 0.2s ease',
   },
   assignBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#1e293b',
     color: '#ffffff',
     border: 'none',
-    padding: '8px 14px',
-    borderRadius: '6px',
+    padding: '11px 18px',
+    borderRadius: '10px',
     fontWeight: 600,
     cursor: 'pointer',
     fontSize: '13px',
+    transition: 'all 0.2s ease',
   },
-  tableCard: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '8px',
-    overflow: 'hidden',
+  countTag: {
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '2px 8px',
+    borderRadius: '12px',
   },
   table: {
     width: '100%',
@@ -318,67 +473,94 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderBottom: '1px solid #e2e8f0',
   },
   th: {
-    padding: '12px 16px',
+    padding: '14px 20px',
     color: '#475569',
-    fontWeight: 600,
-    fontSize: '13px',
+    fontWeight: 700,
+    fontSize: '12.5px',
+    letterSpacing: '0.03em',
+    textTransform: 'uppercase',
   },
   tableRow: {
     borderBottom: '1px solid #f1f5f9',
   },
   td: {
-    padding: '12px 16px',
+    padding: '15px 20px',
     verticalAlign: 'middle',
   },
   idBadge: {
     display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: '4px',
+    padding: '3px 8px',
+    borderRadius: '6px',
     backgroundColor: '#f1f5f9',
     color: '#64748b',
     fontSize: '12px',
-    fontWeight: 600,
+    fontWeight: 700,
   },
   avatar: {
-    backgroundColor: '#eff6ff',
-    padding: '6px',
-    borderRadius: '50%',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    width: '32px',
+    height: '32px',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   permCode: {
-    backgroundColor: '#f8fafc',
+    backgroundColor: 'rgba(241, 245, 249, 0.9)',
     border: '1px solid #e2e8f0',
-    padding: '4px 8px',
-    borderRadius: '4px',
+    padding: '4px 10px',
+    borderRadius: '8px',
     fontSize: '13px',
     color: '#0f172a',
-    fontFamily: 'monospace',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    fontWeight: 600,
   },
   deleteBtn: {
-    background: 'none',
+    background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    padding: '4px',
-    borderRadius: '4px',
+    padding: '6px',
+    borderRadius: '8px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.15s ease',
   },
   emptyBox: {
-    padding: '40px',
+    padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: '16px',
     border: '1px dashed #cbd5e1',
-    color: '#94a3b8',
+  },
+  loadingBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    padding: '60px 0',
+  },
+  spinner: {
+    width: '32px',
+    height: '32px',
+    border: '3px solid #ecfdf5',
+    borderTop: '3px solid #10b981',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
   },
   errorBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
-    backgroundColor: '#fee2e2',
+    gap: '10px',
+    backgroundColor: '#fef2f2',
     color: '#b91c1c',
-    padding: '12px',
-    borderRadius: '6px',
-    marginBottom: '16px',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: '1px solid #fee2e2',
+    marginBottom: '20px',
+    fontSize: '13.5px',
   },
 };

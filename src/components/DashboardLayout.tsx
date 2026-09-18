@@ -12,7 +12,9 @@ import {
   Menu,
   X,
   AlertCircle,
-  Clock
+  Clock,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -26,7 +28,7 @@ export default function DashboardLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  // User ka role check karein
+  // User role parsing
   const currentRole = 
     user?.RoleName || 
     user?.roleName || 
@@ -45,7 +47,7 @@ export default function DashboardLayout() {
     user?.id === 1 || 
     user?.UserID === 1;
 
-  // Check karein kya user pending hai (Admin / Owner kabhi pending nahi ho sakta)
+  // Pending user check
   const isPendingUser = !isAdminOrOwner && (!currentRole || normalizedRole === 'pending');
 
   const handleLogout = () => {
@@ -60,18 +62,57 @@ export default function DashboardLayout() {
   return (
     <div style={styles.container}>
       <style>{`
+        @keyframes floatSlow1 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(60px, -40px) scale(1.15); }
+        }
+        @keyframes floatSlow2 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-50px, 50px) scale(1.18); }
+        }
+        .aurora-ambient-1 {
+          animation: floatSlow1 12s ease-in-out infinite;
+        }
+        .aurora-ambient-2 {
+          animation: floatSlow2 15s ease-in-out infinite;
+        }
         .layout-sidebar {
-          width: 250px;
-          background-color: #ffffff;
-          border-right: 1px solid #e2e8f0;
+          width: 260px;
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          background: rgba(255, 255, 255, 0.85);
+          border-right: 1px solid rgba(226, 232, 240, 0.8);
           display: flex;
           flex-direction: column;
-          padding: 20px 16px;
+          padding: 22px 16px;
           flex-shrink: 0;
-          transition: transform 0.25s ease-in-out;
+          transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 50;
+          box-shadow: 4px 0 24px -6px rgba(15, 23, 42, 0.04);
         }
-
+        .aurora-nav-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          color: #475569;
+          text-decoration: none;
+          font-size: 13.5px;
+          font-weight: 600;
+          transition: all 0.2s ease;
+        }
+        .aurora-nav-item:hover {
+          background-color: rgba(16, 185, 129, 0.08);
+          color: #059669;
+          transform: translateX(3px);
+        }
+        .aurora-nav-item.active {
+          background: #ecfdf5;
+          color: #047857;
+          border: 1px solid #a7f3d0;
+          box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.18);
+        }
         .hamburger-btn {
           display: none;
           background: none;
@@ -79,12 +120,19 @@ export default function DashboardLayout() {
           cursor: pointer;
           padding: 6px;
           color: #334151;
+          border-radius: 8px;
         }
-
+        .hamburger-btn:hover {
+          background-color: #f1f5f9;
+        }
         .sidebar-backdrop {
           display: none;
         }
-
+        .aurora-logout-btn:hover {
+          background-color: #fef2f2 !important;
+          color: #b91c1c !important;
+          border-color: #fecaca !important;
+        }
         @media (max-width: 768px) {
           .layout-sidebar {
             position: fixed;
@@ -92,36 +140,38 @@ export default function DashboardLayout() {
             left: 0;
             bottom: 0;
             transform: translateX(-100%);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 0 35px rgba(15, 23, 42, 0.2);
           }
-
           .layout-sidebar.sidebar-open {
             transform: translateX(0);
           }
-
           .hamburger-btn {
             display: flex;
             align-items: center;
             justify-content: center;
           }
-
           .sidebar-backdrop.active {
             display: block;
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.45);
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
             z-index: 40;
           }
-
           .mobile-close-btn {
             display: block !important;
           }
-
           .header-title-text {
             font-size: 14px !important;
           }
         }
       `}</style>
+
+      {/* Background Animated Aurora Orbs */}
+      <div style={styles.auroraCanvas}>
+        <div className="aurora-ambient-1" style={styles.auroraOrb1} />
+        <div className="aurora-ambient-2" style={styles.auroraOrb2} />
+      </div>
 
       {/* Backdrop for Mobile */}
       <div 
@@ -131,10 +181,18 @@ export default function DashboardLayout() {
 
       {/* Sidebar */}
       <aside className={`layout-sidebar ${mobileMenuOpen ? 'sidebar-open' : ''}`}>
-        <div style={styles.brand}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CheckSquare size={24} color="#2563eb" />
-            <h2 style={styles.brandText}>Task Manager</h2>
+        <div style={styles.brandContainer}>
+          <div style={styles.brandTitleRow}>
+            <div style={styles.brandLogoBox}>
+              <Layers size={20} color="#ffffff" strokeWidth={2.4} />
+            </div>
+            <div>
+              <h2 style={styles.brandText}>TaskFlow</h2>
+              <div style={styles.brandTag}>
+                <Sparkles size={10} color="#059669" />
+                <span>WORKSPACE</span>
+              </div>
+            </div>
           </div>
           <button 
             onClick={closeSidebar}
@@ -151,20 +209,20 @@ export default function DashboardLayout() {
             <NavLink 
               to="/dashboard/organizations" 
               onClick={closeSidebar}
-              style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+              className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
             >
               <Building2 size={18} />
               <span>Organizations</span>
             </NavLink>
           )}
 
-          {/* Regular Work items: SIRF TAB DIKHEIN JAB USER PENDING NA HO */}
+          {/* Regular Work items */}
           {!isPendingUser && (
             <>
               <NavLink 
                 to="/dashboard/projects" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <FolderKanban size={18} />
                 <span>Projects</span>
@@ -173,17 +231,16 @@ export default function DashboardLayout() {
               <NavLink 
                 to="/dashboard/tickets" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <CheckSquare size={18} />
                 <span>Tickets</span>
               </NavLink>
 
-              {/* Attachments Section */}
               <NavLink 
                 to="/dashboard/attachments" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <Paperclip size={18} />
                 <span>Attachments</span>
@@ -194,11 +251,11 @@ export default function DashboardLayout() {
           {/* Admin Only Controls */}
           {isAdminOrOwner && (
             <>
-              <div style={styles.navDivider}>ADMIN CONTROLS</div>
+              <div style={styles.navDivider}>SYSTEM ADMIN</div>
               <NavLink 
                 to="/dashboard/users" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <Users size={18} />
                 <span>Users</span>
@@ -207,7 +264,7 @@ export default function DashboardLayout() {
               <NavLink 
                 to="/dashboard/roles" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <ShieldCheck size={18} />
                 <span>Roles</span>
@@ -216,7 +273,7 @@ export default function DashboardLayout() {
               <NavLink 
                 to="/dashboard/permissions" 
                 onClick={closeSidebar}
-                style={({ isActive }) => (isActive ? { ...styles.navItem, ...styles.navItemActive } : styles.navItem)}
+                className={({ isActive }) => `aurora-nav-item ${isActive ? 'active' : ''}`}
               >
                 <Key size={18} />
                 <span>Permissions</span>
@@ -224,29 +281,34 @@ export default function DashboardLayout() {
             </>
           )}
 
-          {/* Agar user pending hai to sidebar me guide text */}
+          {/* Pending User Sidebar Notice */}
           {isPendingUser && (
             <div style={styles.pendingSidebarNote}>
               <Clock size={16} color="#d97706" />
-              <span>Awaiting role assignment from admin.</span>
+              <span>Awaiting role allocation from admin.</span>
             </div>
           )}
         </nav>
 
         {/* User Info & Logout */}
         <div style={styles.sidebarFooter}>
-          <div style={styles.userInfo}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-              <p style={styles.userName}>{user?.Name || user?.name || 'User'}</p>
-              <span style={isAdminOrOwner ? styles.adminBadge : styles.memberBadge}>
-                {isAdminOrOwner ? (currentRole || 'ADMIN') : (currentRole || 'PENDING')}
-              </span>
+          <div style={styles.userInfoCard}>
+            <div style={styles.avatarPill}>
+              {(user?.Name || user?.name || 'U').charAt(0).toUpperCase()}
             </div>
-            <p style={styles.userEmail}>{user?.Email || user?.email || ''}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                <p style={styles.userName}>{user?.Name || user?.name || 'User'}</p>
+                <span style={isAdminOrOwner ? styles.adminBadge : styles.memberBadge}>
+                  {isAdminOrOwner ? (currentRole || 'ADMIN') : (currentRole || 'PENDING')}
+                </span>
+              </div>
+              <p style={styles.userEmail}>{user?.Email || user?.email || ''}</p>
+            </div>
           </div>
-          <button onClick={handleLogout} style={styles.logoutButton} title="Logout">
-            <LogOut size={16} />
-            <span>Logout</span>
+          <button onClick={handleLogout} className="aurora-logout-btn" style={styles.logoutButton} title="Logout">
+            <LogOut size={15} />
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
@@ -260,14 +322,17 @@ export default function DashboardLayout() {
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open Navigation"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
-            <h3 style={styles.headerTitle} className="header-title-text">Task Management Portal</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={styles.headerDot} />
+              <h3 style={styles.headerTitle} className="header-title-text">Task Management Portal</h3>
+            </div>
           </div>
-          <span style={styles.activeTag}>Online</span>
+          <span style={styles.activeTag}>Workspace Live</span>
         </header>
 
-        {/* Top Warning Banner: Sirf Pending Users ke liye */}
+        {/* Top Warning Banner for Pending Users */}
         {isPendingUser && (
           <div style={styles.pendingBanner}>
             <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -278,14 +343,13 @@ export default function DashboardLayout() {
         )}
 
         <main style={styles.content}>
-          {/* Agar user Pending hai aur Admin nahi hai to Pending Screen aaye, warna Outlet load ho */}
           {isPendingUser ? (
             <div style={styles.pendingScreen}>
               <div style={styles.pendingCard}>
                 <div style={styles.clockIconCircle}>
                   <Clock size={36} color="#d97706" />
                 </div>
-                <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '20px' }}>
+                <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontSize: '20px', fontWeight: 700 }}>
                   Account Awaiting Allocation
                 </h3>
                 <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
@@ -303,7 +367,7 @@ export default function DashboardLayout() {
                   </div>
                 </div>
 
-                <p style={{ margin: '14px 0 0 0', fontSize: '13px', color: '#475569' }}>
+                <p style={{ margin: '14px 0 0 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
                   Please notify your <strong>Organization Admin</strong> with your User ID or Email to allocate your role. Once assigned, refresh this page to access your workspaces.
                 </p>
               </div>
@@ -323,23 +387,76 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '100vh',
     width: '100vw',
     backgroundColor: '#f8fafc',
-    fontFamily: 'sans-serif',
+    position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
-  brand: {
+  auroraCanvas: {
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+    pointerEvents: 'none',
+    zIndex: 0,
+  },
+  auroraOrb1: {
+    position: 'absolute',
+    top: '-15%',
+    left: '12%',
+    width: '560px',
+    height: '560px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(248, 250, 252, 0) 70%)',
+    filter: 'blur(60px)',
+  },
+  auroraOrb2: {
+    position: 'absolute',
+    bottom: '-12%',
+    right: '8%',
+    width: '600px',
+    height: '600px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(14, 165, 233, 0.14) 0%, rgba(248, 250, 252, 0) 70%)',
+    filter: 'blur(70px)',
+  },
+  brandContainer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: '16px',
-    borderBottom: '1px solid #f1f5f9',
+    paddingBottom: '18px',
+    borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
     marginBottom: '16px',
+  },
+  brandTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  brandLogoBox: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '12px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 16px -4px rgba(16, 185, 129, 0.4)',
   },
   brandText: {
     fontSize: '17px',
-    fontWeight: 700,
+    fontWeight: 800,
     color: '#0f172a',
     margin: 0,
+    letterSpacing: '-0.02em',
+  },
+  brandTag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '10px',
+    fontWeight: 700,
+    color: '#059669',
+    letterSpacing: '0.06em',
   },
   mobileClose: {
     display: 'none',
@@ -351,60 +468,62 @@ const styles: { [key: string]: React.CSSProperties } = {
   nav: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '4px',
     flex: 1,
     overflowY: 'auto',
   },
   navDivider: {
-    fontSize: '10px',
+    fontSize: '10.5px',
     fontWeight: 700,
     color: '#94a3b8',
-    letterSpacing: '0.05em',
-    padding: '12px 10px 4px 10px',
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 12px',
-    borderRadius: '8px',
-    color: '#64748b',
-    textDecoration: 'none',
-    fontSize: '14px',
-    fontWeight: 500,
-    transition: 'all 0.15s ease',
-  },
-  navItemActive: {
-    backgroundColor: '#eff6ff',
-    color: '#2563eb',
-    fontWeight: 600,
+    letterSpacing: '0.08em',
+    padding: '16px 14px 6px 14px',
   },
   pendingSidebarNote: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '12px 10px',
+    padding: '12px',
     backgroundColor: '#fffbeb',
     border: '1px dashed #fcd34d',
-    borderRadius: '8px',
+    borderRadius: '12px',
     fontSize: '12px',
     color: '#92400e',
-    marginTop: '10px',
+    marginTop: '12px',
   },
   sidebarFooter: {
-    borderTop: '1px solid #f1f5f9',
+    borderTop: '1px solid rgba(226, 232, 240, 0.8)',
     paddingTop: '14px',
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
   },
-  userInfo: {
-    padding: '0 4px',
+  userInfoCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '8px 10px',
+    borderRadius: '12px',
+    backgroundColor: 'rgba(241, 245, 249, 0.7)',
+    border: '1px solid #e2e8f0',
+  },
+  avatarPill: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: '#ffffff',
+    fontWeight: 700,
+    fontSize: '13px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   userName: {
     margin: 0,
     fontSize: '13px',
-    fontWeight: 600,
+    fontWeight: 700,
     color: '#1e293b',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -413,28 +532,30 @@ const styles: { [key: string]: React.CSSProperties } = {
   userEmail: {
     margin: '2px 0 0 0',
     fontSize: '11px',
-    color: '#94a3b8',
+    color: '#64748b',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   adminBadge: {
-    fontSize: '10px',
-    fontWeight: 600,
-    backgroundColor: '#eff6ff',
-    color: '#2563eb',
+    fontSize: '9.5px',
+    fontWeight: 700,
+    backgroundColor: '#ecfdf5',
+    color: '#047857',
+    border: '1px solid #a7f3d0',
     padding: '2px 6px',
-    borderRadius: '4px',
-    textTransform: 'uppercase',
+    borderRadius: '6px',
+    letterSpacing: '0.04em',
   },
   memberBadge: {
-    fontSize: '10px',
-    fontWeight: 600,
+    fontSize: '9.5px',
+    fontWeight: 700,
     backgroundColor: '#fef3c7',
     color: '#b45309',
+    border: '1px solid #fde68a',
     padding: '2px 6px',
-    borderRadius: '4px',
-    textTransform: 'uppercase',
+    borderRadius: '6px',
+    letterSpacing: '0.04em',
   },
   logoutButton: {
     display: 'flex',
@@ -443,13 +564,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
     width: '100%',
     padding: '9px 12px',
-    backgroundColor: '#fef2f2',
-    color: '#dc2626',
-    border: '1px solid #fecaca',
-    borderRadius: '6px',
+    backgroundColor: '#ffffff',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
+    borderRadius: '10px',
     fontSize: '13px',
     fontWeight: 600,
     cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   main: {
     flex: 1,
@@ -457,30 +579,43 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     overflow: 'hidden',
     minWidth: 0,
+    zIndex: 1,
   },
   topHeader: {
-    height: '56px',
-    backgroundColor: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
+    height: '58px',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0 16px',
+    padding: '0 20px',
     flexShrink: 0,
+  },
+  headerDot: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    backgroundColor: '#10b981',
+    boxShadow: '0 0 8px #10b981',
   },
   headerTitle: {
     margin: 0,
-    fontSize: '15px',
-    fontWeight: 600,
-    color: '#334151',
+    fontSize: '14.5px',
+    fontWeight: 700,
+    color: '#1e293b',
+    letterSpacing: '-0.01em',
   },
   activeTag: {
     fontSize: '11px',
-    color: '#16a34a',
-    backgroundColor: '#dcfce7',
-    padding: '3px 8px',
-    borderRadius: '10px',
-    fontWeight: 600,
+    color: '#047857',
+    backgroundColor: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '3px 10px',
+    borderRadius: '20px',
+    fontWeight: 700,
+    letterSpacing: '0.02em',
   },
   pendingBanner: {
     display: 'flex',
@@ -489,12 +624,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: '#fffbeb',
     color: '#b45309',
     borderBottom: '1px solid #fde68a',
-    padding: '10px 16px',
+    padding: '10px 18px',
     fontSize: '13px',
   },
   content: {
     flex: 1,
-    padding: '16px',
+    padding: '24px',
     overflowY: 'auto',
     boxSizing: 'border-box',
   },
@@ -507,32 +642,33 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   pendingCard: {
     maxWidth: '480px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '12px',
-    padding: '32px 24px',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(226, 232, 240, 0.8)',
+    borderRadius: '20px',
+    padding: '36px 28px',
     textAlign: 'center',
-    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
+    boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.08)',
   },
   clockIconCircle: {
     width: '64px',
     height: '64px',
-    borderRadius: '50%',
+    borderRadius: '18px',
     backgroundColor: '#fef3c7',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '16px',
+    marginBottom: '18px',
   },
   infoBox: {
     backgroundColor: '#f8fafc',
     border: '1px solid #e2e8f0',
-    borderRadius: '8px',
-    padding: '12px 16px',
+    borderRadius: '12px',
+    padding: '14px 18px',
     margin: '20px 0',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '10px',
     textAlign: 'left',
     fontSize: '13px',
   },
