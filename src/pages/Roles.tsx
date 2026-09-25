@@ -78,31 +78,31 @@ export default function Roles() {
     <div style={styles.pageContainer}>
       <style>{`
         .role-table-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
         }
         .role-input-glow:focus {
-          background: #ffffff !important;
+          background: rgba(2, 6, 23, 0.85) !important;
           border-color: #10b981 !important;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
         }
         .emerald-add-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 8px 16px -3px rgba(16, 185, 129, 0.38) !important;
+          box-shadow: 0 10px 22px -4px rgba(16, 185, 129, 0.5) !important;
         }
         .role-table-row {
           transition: background-color 0.15s ease;
         }
         .role-table-row:hover {
-          background-color: rgba(248, 250, 252, 0.8);
+          background-color: rgba(255, 255, 255, 0.03);
         }
         .del-action-hover:hover {
-          background-color: #fef2f2 !important;
+          background-color: rgba(239, 68, 68, 0.15) !important;
           transform: scale(1.08);
         }
       `}</style>
@@ -110,7 +110,7 @@ export default function Roles() {
       {/* Header Banner */}
       <div style={styles.headerSection}>
         <div style={styles.pillBadge}>
-          <Sparkles size={11} color="#059669" />
+          <Sparkles size={11} color="#34d399" />
           <span>SECURITY & ACCESS POLICIES</span>
         </div>
         <h2 style={styles.pageTitle}>Roles Management</h2>
@@ -122,7 +122,7 @@ export default function Roles() {
       {/* Add Role Form */}
       <form onSubmit={handleCreate} style={styles.formCard}>
         <div style={styles.inputWrapper}>
-          <Shield size={16} color="#94a3b8" style={styles.fieldIcon} />
+          <Shield size={16} color="#64748b" style={styles.fieldIcon} />
           <input
             type="text"
             placeholder="Role Title (e.g. Project Manager)..."
@@ -171,12 +171,12 @@ export default function Roles() {
       {loading ? (
         <div style={styles.loadingBox}>
           <div style={styles.spinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Syncing security roles...</p>
+          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Syncing security roles...</p>
         </div>
       ) : roles.length === 0 ? (
         <div style={styles.emptyBox}>
-          <ShieldCheck size={36} color="#cbd5e1" style={{ marginBottom: '10px' }} />
-          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No roles defined yet</h4>
+          <ShieldCheck size={36} color="#64748b" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9' }}>No roles defined yet</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
             Add your initial RBAC role using the form above.
           </p>
@@ -202,20 +202,20 @@ export default function Roles() {
                     <td style={styles.td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={styles.avatar}>
-                          <Shield size={16} color="#059669" strokeWidth={2.2} />
+                          <Shield size={16} color="#10b981" strokeWidth={2.2} />
                         </div>
                         <div>
-                          <strong style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>
+                          <strong style={{ color: '#ffffff', fontSize: '14px', fontWeight: 700 }}>
                             {rName}
                           </strong>
-                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                             Role ID #{rId}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ color: '#64748b', fontSize: '13.5px', lineHeight: 1.45 }}>
+                      <span style={{ color: '#94a3b8', fontSize: '13.5px', lineHeight: 1.45 }}>
                         {rDesc}
                       </span>
                     </td>
@@ -226,7 +226,7 @@ export default function Roles() {
                         style={styles.deleteBtn}
                         title="Delete Role"
                       >
-                        <Trash2 size={16} color="#ef4444" />
+                        <Trash2 size={16} color="#f87171" />
                       </button>
                     </td>
                   </tr>
@@ -251,40 +251,40 @@ const styles: { [key: string]: React.CSSProperties } = {
   pillBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     fontSize: '10.5px',
     fontWeight: 700,
     letterSpacing: '0.07em',
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '3px 10px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '4px 12px',
     borderRadius: '20px',
     marginBottom: '8px',
   },
   pageTitle: {
     margin: 0,
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 800,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.025em',
   },
   pageSubtitle: {
     margin: '6px 0 0 0',
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '14px',
     lineHeight: 1.5,
   },
   formCard: {
     display: 'flex',
     gap: '12px',
-    background: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
     padding: '14px 16px',
     borderRadius: '16px',
-    border: '1px solid rgba(226, 232, 240, 0.85)',
-    boxShadow: '0 8px 20px -4px rgba(15, 23, 42, 0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
     marginBottom: '26px',
     flexWrap: 'wrap',
   },
@@ -303,12 +303,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   input: {
     width: '100%',
     padding: '11px 14px 11px 36px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
     fontSize: '13.5px',
     outline: 'none',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     boxSizing: 'border-box',
     transition: 'all 0.15s ease',
   },
@@ -325,7 +325,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '13.5px',
     flexShrink: 0,
-    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
     transition: 'all 0.2s ease',
   },
   table: {
@@ -335,27 +335,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
   },
   tableHeadRow: {
-    backgroundColor: '#f8fafc',
-    borderBottom: '1px solid #e2e8f0',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   },
   th: {
     padding: '14px 20px',
-    color: '#475569',
+    color: '#64748b',
     fontWeight: 700,
-    fontSize: '12.5px',
-    letterSpacing: '0.03em',
+    fontSize: '12px',
+    letterSpacing: '0.04em',
     textTransform: 'uppercase',
   },
   tableRow: {
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   },
   td: {
     padding: '16px 20px',
     verticalAlign: 'middle',
   },
   avatar: {
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     width: '34px',
     height: '34px',
     borderRadius: '10px',
@@ -378,9 +378,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   emptyBox: {
     padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '16px',
-    border: '1px dashed #cbd5e1',
+    border: '1px dashed rgba(255, 255, 255, 0.1)',
   },
   loadingBox: {
     display: 'flex',
@@ -393,7 +393,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '32px',
     height: '32px',
-    border: '3px solid #ecfdf5',
+    border: '3px solid rgba(16, 185, 129, 0.15)',
     borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
@@ -402,11 +402,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    color: '#f87171',
     padding: '12px 16px',
     borderRadius: '12px',
-    border: '1px solid #fee2e2',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
     marginBottom: '20px',
     fontSize: '13.5px',
   },

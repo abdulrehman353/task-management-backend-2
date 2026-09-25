@@ -1,598 +1,616 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
 import { 
-  ShieldCheck, 
   Lock, 
-  AlertCircle, 
-  CheckCircle2, 
-  ArrowLeft, 
   ArrowRight, 
-  Sparkles,
+  ArrowLeft, 
+  KeyRound, 
+  ShieldCheck, 
+  Zap, 
+  CheckCircle2, 
+  AlertCircle,
   Eye,
   EyeOff
 } from 'lucide-react';
+import axiosClient from '../api/axiosClient';
 
-// Token se safely userId nikalne ka helper
-function getUserIdFromToken(rawToken: string): number | null {
-  try {
-    const parts = rawToken.split('.');
-    if (parts.length < 2) return null;
-
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window
-        .atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-
-    const payload = JSON.parse(jsonPayload);
-    const foundId =
-      payload.UserID ??
-      payload.userId ??
-      payload.id ??
-      payload.ID ??
-      payload.user_id ??
-      payload.sub ??
-      null;
-
-    return foundId !== null ? Number(foundId) : null;
-  } catch (err) {
-    console.error('Failed to parse JWT token', err);
-    return null;
-  }
-}
-
-export default function ResetPassword() {
+const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const tokenFromUrl = searchParams.get('token') || '';
 
-  const token = searchParams.get('token') || sessionStorage.getItem('resetToken') || '';
-  const [newPassword, setNewPassword] = useState('');
+  const [token, setToken] = useState(tokenFromUrl);
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      sessionStorage.setItem('resetToken', token);
-    }
-  }, [token]);
-
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setMessage(null);
 
-    if (newPassword !== confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     if (!token) {
-      setError('Reset token is missing in URL.');
+      setError('Reset token is missing. Please check your reset link.');
       return;
     }
 
-    const extractedUserId = getUserIdFromToken(token);
-
-    if (!extractedUserId) {
-      setError('Unable to identify user from token. Please request a new reset link.');
-      return;
-    }
+    setLoading(true);
 
     try {
-      setLoading(true);
-      setError(null);
+      const response = await axiosClient.post('/auth/reset-password', {
+        token,
+        newPassword: password,
+        password
+      });
 
-      const payload = {
-        token: token,
-        Token: token,
-        userId: extractedUserId,
-        UserID: extractedUserId,
-        id: extractedUserId,
-        newPassword: newPassword,
-        NewPassword: newPassword,
-        password: newPassword,
-      };
-
-      await axiosClient.post('/auth/reset-password', payload);
-
-      sessionStorage.removeItem('resetToken');
-      setSuccess(true);
+      setMessage(
+        response.data?.message || 
+        'Password updated successfully! Redirecting to login...'
+      );
 
       setTimeout(() => {
         navigate('/login');
-      }, 1500);
+      }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Password reset failed. Please try again.');
+      console.error('Reset password error:', err);
+      setError(
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        'Failed to reset password. The link or token may be expired.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.viewport}>
+    <div style={styles.pageWrapper}>
+      {/* Responsive Media Queries */}
       <style>{`
-        @keyframes floatSlow1 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(70px, -50px) scale(1.18); }
-        }
-        @keyframes floatSlow2 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-60px, 40px) scale(1.22); }
-        }
-        .aura-blob-1 {
-          animation: floatSlow1 10s ease-in-out infinite;
-        }
-        .aura-blob-2 {
-          animation: floatSlow2 12s ease-in-out infinite;
-        }
-        .glass-panel {
-          backdrop-filter: blur(28px);
-          -webkit-backdrop-filter: blur(28px);
-          background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 35px 80px -20px rgba(6, 78, 59, 0.18), 
-                      0 15px 35px -10px rgba(15, 23, 42, 0.08),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .glass-panel:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 45px 90px -20px rgba(16, 185, 129, 0.28), 
-                      0 20px 40px -10px rgba(15, 23, 42, 0.1),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-        }
-        .luxury-input:focus {
-          background: #ffffff !important;
-          border-color: #10b981 !important;
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 4px 12px rgba(16, 185, 129, 0.08) !important;
-        }
-        .emerald-cta {
+        .reset-grid-container {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 64px;
+          align-items: center;
+          width: 100%;
+          max-width: 1120px;
           position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
-          box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.45);
-          transition: all 0.25s ease;
+          z-index: 10;
         }
-        .emerald-cta:hover:not(:disabled) {
-          transform: translateY(-1.5px);
-          box-shadow: 0 16px 32px -6px rgba(16, 185, 129, 0.55);
+
+        .reset-branding {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          color: #f8fafc;
         }
-        .emerald-cta:active:not(:disabled) {
-          transform: translateY(0);
+
+        .reset-auth-card {
+          width: 100%;
+          max-width: 440px;
+          background-color: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.08);
+          border-radius: 24px;
+          padding: 32px 28px;
+          box-sizing: border-box;
+          position: relative;
         }
-        .eye-toggle-btn:hover {
-          opacity: 0.8;
-        }
-        .back-nav-link:hover {
-          color: #059669 !important;
-          transform: translateX(-3px);
-        }
-        @media (max-width: 480px) {
-          .glass-panel {
-            padding: 30px 22px !important;
-            border-radius: 24px !important;
+
+        /* Tablet View (769px to 1024px) */
+        @media (max-width: 1024px) {
+          .reset-grid-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            max-width: 580px;
           }
-          .luxury-input {
-            font-size: 16px !important;
+          .reset-branding {
+            text-align: center;
+            align-items: center;
+          }
+          .reset-branding .brand-subtitle {
+            text-align: center;
+          }
+          .reset-branding .feature-list {
+            display: none;
+          }
+          .reset-auth-card {
+            max-width: 100%;
+          }
+        }
+
+        /* Mobile View (≤ 768px) - Android WebView */
+        @media (max-width: 768px) {
+          .reset-grid-container {
+            grid-template-columns: 1fr;
+            gap: 0px;
+            max-width: 100%;
+          }
+          .reset-branding {
+            display: none !important; /* Mobile par left hero hide ho jayega */
+          }
+          .reset-auth-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 24px 18px !important;
+            border-radius: 20px !important;
           }
         }
       `}</style>
 
-      {/* Dynamic Animated Ambient Orbs */}
-      <div style={styles.orbContainer}>
-        <div className="aura-blob-1" style={styles.orb1} />
-        <div className="aura-blob-2" style={styles.orb2} />
-        <div style={styles.orb3} />
-        <div style={styles.gridOverlay} />
-      </div>
+      <div style={styles.glowTopLeft}></div>
+      <div style={styles.glowBottomRight}></div>
 
-      <div className="glass-panel" style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.logoBadgeContainer}>
-            <div style={styles.logoBadgeGlow} />
-            <div style={styles.logoBadgeInner}>
-              <ShieldCheck size={24} color="#ffffff" strokeWidth={2.4} />
+      <div className="reset-grid-container">
+        {/* Left Side: Enterprise Recovery Overview */}
+        <div className="reset-branding">
+          <div style={styles.brandBadge}>
+            <span style={styles.badgePulse}></span>
+            Master Credential Update
+          </div>
+
+          <h1 style={styles.brandTitle}>
+            Configure New <br />
+            <span style={styles.brandGradientText}>Access Password</span>
+          </h1>
+
+          <p style={styles.brandSubtitle} className="brand-subtitle">
+            Update your organization credentials securely. All active token rotations follow enterprise Zero-Trust authentication protocols.
+          </p>
+
+          <div style={styles.featureList} className="feature-list">
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <ShieldCheck size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>End-to-End Hash Storage</h4>
+                <p style={styles.featureDesc}>Passwords are salted and cryptographically hashed at the database layer.</p>
+              </div>
             </div>
-            <div style={styles.liveBeacon}>
-              <span style={styles.beaconDot} />
+
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <Zap size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>Instant Session Revocation</h4>
+                <p style={styles.featureDesc}>Stale authorization tokens are automatically invalidated upon reset.</p>
+              </div>
             </div>
-          </div>
 
-          <div style={styles.tagBadge}>
-            <Sparkles size={12} color="#047857" />
-            <span>ACCOUNT SECURITY</span>
-          </div>
-
-          <h1 style={styles.title}>Reset Password</h1>
-          <p style={styles.subtitle}>Enter your new password to regain workspace access</p>
-        </div>
-
-        {error && (
-          <div style={styles.errorAlert}>
-            <AlertCircle size={17} style={{ flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div style={styles.successAlert}>
-            <CheckCircle2 size={17} style={{ flexShrink: 0 }} />
-            <span>Password updated! Redirecting to login...</span>
-          </div>
-        )}
-
-        <form onSubmit={handleResetPassword} style={styles.form}>
-          <div style={styles.fieldWrapper}>
-            <label style={styles.label}>New Secure Password</label>
-            <div style={styles.inputContainer}>
-              <Lock size={18} color="#64748b" style={styles.inputIcon} />
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                required
-                className="luxury-input"
-                placeholder="••••••••••••"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                style={{ ...styles.input, paddingRight: '44px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="eye-toggle-btn"
-                style={styles.eyeBtn}
-                title={showNewPassword ? 'Hide password' : 'Show password'}
-              >
-                {showNewPassword ? (
-                  <Eye size={18} color="#10b981" />
-                ) : (
-                  <EyeOff size={18} color="#64748b" />
-                )}
-              </button>
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <CheckCircle2 size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>Immediate Workspace Access</h4>
+                <p style={styles.featureDesc}>Login right away without administrative approval delays.</p>
+              </div>
             </div>
-          </div>
-
-          <div style={styles.fieldWrapper}>
-            <label style={styles.label}>Confirm New Password</label>
-            <div style={styles.inputContainer}>
-              <Lock size={18} color="#64748b" style={styles.inputIcon} />
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                required
-                className="luxury-input"
-                placeholder="••••••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ ...styles.input, paddingRight: '44px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="eye-toggle-btn"
-                style={styles.eyeBtn}
-                title={showConfirmPassword ? 'Hide password' : 'Show password'}
-              >
-                {showConfirmPassword ? (
-                  <Eye size={18} color="#10b981" />
-                ) : (
-                  <EyeOff size={18} color="#64748b" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="emerald-cta"
-            style={{
-              ...styles.submitBtn,
-              opacity: loading || success ? 0.75 : 1,
-              cursor: loading || success ? 'not-allowed' : 'pointer'
-            }}
-          >
-            <span>{loading ? 'Updating Password...' : 'Save New Password'}</span>
-            {!loading && <ArrowRight size={17} strokeWidth={2.4} />}
-          </button>
-        </form>
-
-        <div style={styles.securityStrip}>
-          <div style={styles.securityPoint}>
-            <ShieldCheck size={14} color="#059669" />
-            <span>Encrypted Hashing</span>
-          </div>
-          <span style={{ color: '#cbd5e1' }}>•</span>
-          <div style={styles.securityPoint}>
-            <CheckCircle2 size={14} color="#059669" />
-            <span>Session Reset Active</span>
           </div>
         </div>
 
-        <div style={styles.footerLinkWrapper}>
-          <Link to="/login" className="back-nav-link" style={styles.backAnchor}>
-            <ArrowLeft size={16} />
-            <span>Back to Sign In</span>
-          </Link>
+        {/* Right Side: Auth Card */}
+        <div style={styles.cardContainer}>
+          <div className="reset-auth-card">
+            
+            {/* Top-Left Back Arrow */}
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              style={styles.backBtn}
+              aria-label="Back to login"
+            >
+              <ArrowLeft size={18} color="#cbd5e1" />
+            </button>
+
+            <div style={styles.cardHeader}>
+              <div style={styles.logoBadge}>
+                <KeyRound size={26} color="#ffffff" />
+              </div>
+              <h2 style={styles.cardTitle}>Set New Password</h2>
+              <p style={styles.cardSubtitle}>Enter your reset token and chosen new master password</p>
+            </div>
+
+            {error && (
+              <div style={styles.errorBox}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {message && (
+              <div style={styles.successBox}>
+                <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+                <span>{message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={styles.form}>
+              {!tokenFromUrl && (
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Verification Token</label>
+                  <div style={styles.inputWrapper}>
+                    <KeyRound size={18} style={styles.inputIcon} />
+                    <input
+                      type="text"
+                      required
+                      value={token}
+                      onChange={(e) => setToken(e.target.value)}
+                      placeholder="Paste token from recovery email"
+                      style={styles.input}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>New Password</label>
+                <div style={styles.inputWrapper}>
+                  <Lock size={18} style={styles.inputIcon} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    style={styles.input}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={styles.eyeBtn}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Confirm New Password</label>
+                <div style={styles.inputWrapper}>
+                  <Lock size={18} style={styles.inputIcon} />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repeat new master password"
+                    style={styles.input}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeBtn}
+                    aria-label="Toggle confirm password visibility"
+                  >
+                    {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  ...styles.submitBtn,
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? 'Updating Credentials...' : (
+                  <>
+                    <span>Confirm & Reset Password</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div style={styles.cardFooter}>
+              <Link to="/login" style={styles.backLink}>
+                <ArrowLeft size={16} />
+                <span>Return to Sign In</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 const styles: { [key: string]: React.CSSProperties } = {
-  viewport: {
+  pageWrapper: {
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
+    width: '100%',
+    backgroundColor: '#090d16',
+    backgroundImage: `
+      radial-gradient(at 10% 20%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+      radial-gradient(at 90% 80%, rgba(5, 150, 105, 0.10) 0px, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+    `,
+    backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '24px 16px',
-    backgroundColor: '#0f172a',
-    overflow: 'hidden',
-    boxSizing: 'border-box',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-  orbContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  orb1: {
-    position: 'absolute',
-    top: '-5%',
-    left: '12%',
-    width: '580px',
-    height: '580px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(5, 150, 105, 0.15) 50%, transparent 70%)',
-    filter: 'blur(70px)',
-  },
-  orb2: {
-    position: 'absolute',
-    bottom: '-10%',
-    right: '15%',
-    width: '620px',
-    height: '620px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(14, 165, 233, 0.35) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%)',
-    filter: 'blur(80px)',
-  },
-  orb3: {
-    position: 'absolute',
-    top: '35%',
-    right: '32%',
-    width: '420px',
-    height: '420px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, transparent 65%)',
-    filter: 'blur(60px)',
-  },
-  gridOverlay: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px)`,
-    backgroundSize: '40px 40px',
-    maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-    WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-  },
-  card: {
     position: 'relative',
-    zIndex: 1,
-    width: '100%',
-    maxWidth: '450px',
-    borderRadius: '28px',
-    padding: '42px 38px',
+    overflowX: 'hidden',
+    padding: '24px 16px',
     boxSizing: 'border-box',
+    fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif'
   },
-  header: {
-    textAlign: 'center',
-    marginBottom: '26px',
+  glowTopLeft: {
+    position: 'absolute',
+    top: '-15%',
+    left: '-10%',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
+  glowBottomRight: {
+    position: 'absolute',
+    bottom: '-15%',
+    right: '-10%',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.12) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
+  backBtn: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '12px',
+    width: '36px',
+    height: '36px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    zIndex: 20
+  },
+  brandBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    alignSelf: 'flex-start',
+    padding: '6px 14px',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    borderRadius: '100px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#34d399',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase'
+  },
+  badgePulse: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    backgroundColor: '#10b981',
+    boxShadow: '0 0 10px #10b981'
+  },
+  brandTitle: {
+    fontSize: 'clamp(28px, 4vw, 44px)',
+    lineHeight: '1.15',
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+    color: '#ffffff',
+    margin: 0
+  },
+  brandGradientText: {
+    background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent'
+  },
+  brandSubtitle: {
+    fontSize: '15px',
+    lineHeight: '1.6',
+    color: '#94a3b8',
+    margin: 0,
+    maxWidth: '480px'
+  },
+  featureList: {
     display: 'flex',
     flexDirection: 'column',
+    gap: '18px',
+    marginTop: '12px'
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '14px'
+  },
+  featureIconBox: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
+    display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
-  logoBadgeContainer: {
-    position: 'relative',
-    marginBottom: '16px',
+  featureTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#f1f5f9',
+    margin: '0 0 3px 0'
   },
-  logoBadgeGlow: {
-    position: 'absolute',
-    inset: '-6px',
-    borderRadius: '22px',
-    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.6), rgba(14, 165, 233, 0.4))',
-    filter: 'blur(10px)',
-    zIndex: -1,
+  featureDesc: {
+    fontSize: '13px',
+    color: '#64748b',
+    margin: 0
   },
-  logoBadgeInner: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '18px',
+  cardContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  cardHeader: {
+    textAlign: 'center',
+    marginBottom: '22px'
+  },
+  logoBadge: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '16px',
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 12px 24px -6px rgba(16, 185, 129, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
+    margin: '0 auto 14px auto',
+    boxShadow: '0 10px 25px rgba(16, 185, 129, 0.35)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
   },
-  liveBeacon: {
-    position: 'absolute',
-    top: '-3px',
-    right: '-3px',
-    width: '15px',
-    height: '15px',
-    borderRadius: '50%',
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-  },
-  beaconDot: {
-    width: '9px',
-    height: '9px',
-    borderRadius: '50%',
-    backgroundColor: '#10b981',
-  },
-  tagBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '11px',
+  cardTitle: {
+    fontSize: '22px',
     fontWeight: 700,
-    letterSpacing: '0.08em',
-    color: '#065f46',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    padding: '4px 14px',
-    borderRadius: '30px',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
-    marginBottom: '12px',
+    color: '#ffffff',
+    letterSpacing: '-0.02em',
+    margin: '0 0 6px 0'
   },
-  title: {
-    margin: 0,
-    fontSize: '28px',
-    fontWeight: 800,
-    color: '#0f172a',
-    letterSpacing: '-0.03em',
-  },
-  subtitle: {
-    margin: '8px 0 0 0',
+  cardSubtitle: {
     fontSize: '13.5px',
-    color: '#475569',
-    lineHeight: 1.5,
+    color: '#94a3b8',
+    margin: 0
   },
-  errorAlert: {
+  errorBox: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: 'rgba(254, 242, 242, 0.9)',
-    color: '#b91c1c',
-    border: '1px solid #fecaca',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
+    color: '#f87171',
+    borderRadius: '12px',
     padding: '12px 14px',
-    borderRadius: '14px',
-    marginBottom: '18px',
     fontSize: '13px',
-    lineHeight: 1.4,
+    marginBottom: '18px'
   },
-  successAlert: {
+  successBox: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: 'rgba(236, 253, 245, 0.95)',
-    color: '#047857',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    color: '#34d399',
+    borderRadius: '12px',
     padding: '12px 14px',
-    borderRadius: '14px',
-    marginBottom: '18px',
     fontSize: '13px',
-    lineHeight: 1.4,
+    marginBottom: '18px'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '18px',
+    gap: '14px'
   },
-  fieldWrapper: {
+  inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
-    textAlign: 'left',
+    gap: '6px'
   },
   label: {
     fontSize: '13px',
     fontWeight: 600,
-    color: '#1e293b',
+    color: '#cbd5e1'
   },
-  inputContainer: {
+  inputWrapper: {
     position: 'relative',
     display: 'flex',
-    alignItems: 'center',
-    width: '100%',
+    alignItems: 'center'
   },
   inputIcon: {
     position: 'absolute',
     left: '14px',
-    pointerEvents: 'none',
+    color: '#64748b',
+    pointerEvents: 'none'
+  },
+  input: {
+    width: '100%',
+    padding: '11px 14px 11px 42px',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box'
   },
   eyeBtn: {
     position: 'absolute',
     right: '12px',
     background: 'transparent',
     border: 'none',
-    outline: 'none',
+    color: '#94a3b8',
     cursor: 'pointer',
-    padding: '4px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'opacity 0.2s ease',
-  },
-  input: {
-    width: '100%',
-    padding: '13px 14px 13px 44px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '14px',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box',
-    backgroundColor: 'rgba(248, 250, 252, 0.7)',
-    color: '#0f172a',
-    transition: 'all 0.2s ease',
+    padding: '4px'
   },
   submitBtn: {
+    marginTop: '6px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    padding: '14px 20px',
+    width: '100%',
+    padding: '13px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '14px',
-    fontWeight: 600,
+    borderRadius: '12px',
     fontSize: '14.5px',
-    marginTop: '4px',
-    boxSizing: 'border-box',
+    fontWeight: 600,
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
+    transition: 'all 0.2s ease'
   },
-  securityStrip: {
-    marginTop: '26px',
-    paddingTop: '18px',
-    borderTop: '1px solid rgba(203, 213, 225, 0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-  },
-  securityPoint: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    fontSize: '12px',
-    color: '#475569',
-    fontWeight: 500,
-  },
-  footerLinkWrapper: {
+  cardFooter: {
     marginTop: '18px',
     textAlign: 'center',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+    paddingTop: '16px'
   },
-  backAnchor: {
+  backLink: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '6px',
-    color: '#64748b',
-    fontSize: '13.5px',
+    gap: '8px',
+    color: '#34d399',
     textDecoration: 'none',
+    fontSize: '13.5px',
     fontWeight: 600,
-    transition: 'all 0.2s ease',
-  },
+    transition: 'color 0.2s ease'
+  }
 };
+
+export default ResetPassword;

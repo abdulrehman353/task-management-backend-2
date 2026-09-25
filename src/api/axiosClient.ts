@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Backend Cloudflare Tunnel URL
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'http://192.168.0.71:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },

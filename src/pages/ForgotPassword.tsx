@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Mail, ArrowLeft, Send, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
-import { 
-  KeyRound, 
-  Mail, 
-  ArrowLeft, 
-  AlertCircle, 
-  CheckCircle2, 
-  ArrowRight, 
-  Sparkles,
-  ShieldCheck 
-} from 'lucide-react';
 
-export default function ForgotPassword() {
+const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,156 +12,121 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
-      setMessage(null);
+    setLoading(true);
+    setError(null);
+    setMessage(null);
 
-      const res = await axiosClient.post('/auth/forgot-password', {
-        Email: email,
-        email: email,
+    const targetEmail = email.trim();
+
+    try {
+      const response = await axiosClient.post('/auth/forgot-password', {
+        email: targetEmail,
+        Email: targetEmail
       });
 
-      setMessage(res.data?.message || 'Password reset link generated successfully! Redirecting...');
+      const data = response?.data;
+      // Backend agar direct token return kar raha ho
+      const resetToken = 
+        data?.token || 
+        data?.resetToken || 
+        data?.data?.token || 
+        data?.data?.resetToken;
 
-      const data = res.data?.data || res.data || {};
-      const receivedToken = data.token || data.resetToken || res.data?.token || '';
-      const receivedUserId = data.userId || data.UserID || data.id || res.data?.userId || '';
+      setMessage('Password reset instructions verified. Redirecting...');
 
+      // Thoda delay taaki success animation dikhe phir redirect ho jaye
       setTimeout(() => {
-        const queryParams = new URLSearchParams();
-        if (receivedToken) queryParams.set('token', receivedToken);
-        if (receivedUserId) queryParams.set('userId', String(receivedUserId));
-
-        const queryString = queryParams.toString();
-        navigate(queryString ? `/reset-password?${queryString}` : '/reset-password');
-      }, 1500);
+        if (resetToken) {
+          navigate(`/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(targetEmail)}`);
+        } else {
+          // Agar email me token gaya ho toh email param ke sath reset page par bhej dein
+          navigate(`/reset-password?email=${encodeURIComponent(targetEmail)}`);
+        }
+      }, 700);
 
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send reset link.');
+      setError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.viewport}>
+    <div style={styles.container}>
       <style>{`
-        @keyframes floatSlow1 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(70px, -50px) scale(1.18); }
-        }
-        @keyframes floatSlow2 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-60px, 40px) scale(1.22); }
-        }
-        .aura-blob-1 {
-          animation: floatSlow1 10s ease-in-out infinite;
-        }
-        .aura-blob-2 {
-          animation: floatSlow2 12s ease-in-out infinite;
-        }
-        .glass-panel {
-          backdrop-filter: blur(28px);
-          -webkit-backdrop-filter: blur(28px);
-          background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 35px 80px -20px rgba(6, 78, 59, 0.18), 
-                      0 15px 35px -10px rgba(15, 23, 42, 0.08),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .glass-panel:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 45px 90px -20px rgba(16, 185, 129, 0.28), 
-                      0 20px 40px -10px rgba(15, 23, 42, 0.1),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-        }
-        .luxury-input:focus {
-          background: #ffffff !important;
-          border-color: #10b981 !important;
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 4px 12px rgba(16, 185, 129, 0.08) !important;
-        }
-        .emerald-cta {
+        .forgot-card {
+          width: 100%;
+          max-width: 430px;
+          background-color: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 32px 28px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
           position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
-          box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.45);
-          transition: all 0.25s ease;
+          z-index: 10;
+          box-sizing: border-box;
         }
-        .emerald-cta:hover:not(:disabled) {
-          transform: translateY(-1.5px);
-          box-shadow: 0 16px 32px -6px rgba(16, 185, 129, 0.55);
-        }
-        .emerald-cta:active:not(:disabled) {
-          transform: translateY(0);
-        }
-        .back-nav-link:hover {
-          color: #059669 !important;
-          transform: translateX(-3px);
-        }
-        @media (max-width: 480px) {
-          .glass-panel {
-            padding: 30px 22px !important;
-            border-radius: 24px !important;
-          }
-          .luxury-input {
-            font-size: 16px !important;
+
+        @media (max-width: 768px) {
+          .forgot-card {
+            max-width: 100% !important;
+            padding: 24px 18px !important;
+            border-radius: 20px !important;
           }
         }
       `}</style>
 
-      <div style={styles.orbContainer}>
-        <div className="aura-blob-1" style={styles.orb1} />
-        <div className="aura-blob-2" style={styles.orb2} />
-        <div style={styles.orb3} />
-        <div style={styles.gridOverlay} />
-      </div>
+      <div style={styles.glowTop}></div>
+      <div style={styles.glowBottom}></div>
 
-      <div className="glass-panel" style={styles.card}>
+      <div className="forgot-card">
+        {/* Top Action Row: Back Arrow */}
+        <div style={styles.topRow}>
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            style={styles.backBtn}
+            aria-label="Back to login"
+          >
+            <ArrowLeft size={18} color="#cbd5e1" />
+          </button>
+        </div>
+
         <div style={styles.header}>
-          <div style={styles.logoBadgeContainer}>
-            <div style={styles.logoBadgeGlow} />
-            <div style={styles.logoBadgeInner}>
-              <KeyRound size={24} color="#ffffff" strokeWidth={2.4} />
-            </div>
-            <div style={styles.liveBeacon}>
-              <span style={styles.beaconDot} />
-            </div>
+          <div style={styles.badge}>
+            <Sparkles size={12} color="#34d399" />
+            <span>ACCOUNT RECOVERY</span>
           </div>
-
-          <div style={styles.tagBadge}>
-            <Sparkles size={12} color="#047857" />
-            <span>CREDENTIAL RECOVERY</span>
-          </div>
-
-          <h1 style={styles.title}>Forgot Password?</h1>
-          <p style={styles.subtitle}>Enter your verified email to receive a recovery token</p>
+          <h2 style={styles.title}>Forgot Password</h2>
+          <p style={styles.subtitle}>
+            Enter your registered email address and we'll send you recovery details.
+          </p>
         </div>
 
         {error && (
-          <div style={styles.errorAlert}>
-            <AlertCircle size={17} style={{ flexShrink: 0 }} />
+          <div style={styles.errorBox}>
+            <AlertCircle size={16} />
             <span>{error}</span>
           </div>
         )}
 
         {message && (
-          <div style={styles.successAlert}>
-            <CheckCircle2 size={17} style={{ flexShrink: 0 }} />
+          <div style={styles.successBox}>
+            <CheckCircle2 size={16} />
             <span>{message}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.fieldWrapper}>
-            <label style={styles.label}>Registered Corporate Email</label>
-            <div style={styles.inputContainer}>
-              <Mail size={18} color="#64748b" style={styles.inputIcon} />
+          <div>
+            <label style={styles.label}>Email Address</label>
+            <div style={styles.inputWrapper}>
+              <Mail size={16} color="#64748b" style={styles.inputIcon} />
               <input
                 type="email"
                 required
-                className="luxury-input"
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -179,299 +135,198 @@ export default function ForgotPassword() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="emerald-cta"
-            style={{
-              ...styles.submitBtn,
-              opacity: loading ? 0.75 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            <span>{loading ? 'Generating reset token...' : 'Send Reset Link'}</span>
-            {!loading && <ArrowRight size={17} strokeWidth={2.4} />}
+          <button type="submit" disabled={loading} style={styles.submitBtn}>
+            <Send size={15} />
+            <span>{loading ? 'Sending Request...' : 'Send Reset Link'}</span>
           </button>
         </form>
 
-        <div style={styles.securityStrip}>
-          <div style={styles.securityPoint}>
-            <ShieldCheck size={14} color="#059669" />
-            <span>Encrypted Token Delivery</span>
-          </div>
-          <span style={{ color: '#cbd5e1' }}>•</span>
-          <div style={styles.securityPoint}>
-            <CheckCircle2 size={14} color="#059669" />
-            <span>Timed Expiry</span>
-          </div>
-        </div>
-
-        <div style={styles.footerLinkWrapper}>
-          <Link to="/login" className="back-nav-link" style={styles.backAnchor}>
-            <ArrowLeft size={16} />
-            <span>Back to Sign In</span>
+        <div style={styles.footer}>
+          <Link to="/login" style={styles.backLink}>
+            <ArrowLeft size={14} />
+            <span>Back to Login</span>
           </Link>
         </div>
       </div>
     </div>
   );
-}
+};
 
 const styles: { [key: string]: React.CSSProperties } = {
-  viewport: {
+  container: {
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#070b12',
+    backgroundImage: `
+      radial-gradient(at 10% 20%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+      radial-gradient(at 90% 80%, rgba(5, 150, 105, 0.06) 0px, transparent 50%)
+    `,
     padding: '24px 16px',
-    backgroundColor: '#0f172a',
+    position: 'relative',
     overflow: 'hidden',
     boxSizing: 'border-box',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, sans-serif'
   },
-  orbContainer: {
+  glowTop: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  orb1: {
-    position: 'absolute',
-    top: '-5%',
-    left: '12%',
-    width: '580px',
-    height: '580px',
+    top: '-10%',
+    left: '10%',
+    width: '450px',
+    height: '450px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(5, 150, 105, 0.15) 50%, transparent 70%)',
-    filter: 'blur(70px)',
+    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
   },
-  orb2: {
+  glowBottom: {
     position: 'absolute',
     bottom: '-10%',
-    right: '15%',
-    width: '620px',
-    height: '620px',
+    right: '10%',
+    width: '450px',
+    height: '450px',
     borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(14, 165, 233, 0.35) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%)',
+    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.08) 0%, transparent 70%)',
     filter: 'blur(80px)',
+    pointerEvents: 'none'
   },
-  orb3: {
-    position: 'absolute',
-    top: '35%',
-    right: '32%',
-    width: '420px',
-    height: '420px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, transparent 65%)',
-    filter: 'blur(60px)',
+  topRow: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '16px'
   },
-  gridOverlay: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px)`,
-    backgroundSize: '40px 40px',
-    maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-    WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-  },
-  card: {
-    position: 'relative',
-    zIndex: 1,
-    width: '100%',
-    maxWidth: '450px',
-    borderRadius: '28px',
-    padding: '42px 38px',
-    boxSizing: 'border-box',
+  backBtn: {
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '12px',
+    width: '38px',
+    height: '38px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease'
   },
   header: {
-    textAlign: 'center',
-    marginBottom: '26px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    marginBottom: '24px'
   },
-  logoBadgeContainer: {
-    position: 'relative',
-    marginBottom: '16px',
-  },
-  logoBadgeGlow: {
-    position: 'absolute',
-    inset: '-6px',
-    borderRadius: '22px',
-    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.6), rgba(14, 165, 233, 0.4))',
-    filter: 'blur(10px)',
-    zIndex: -1,
-  },
-  logoBadgeInner: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '18px',
-    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 12px 24px -6px rgba(16, 185, 129, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
-  },
-  liveBeacon: {
-    position: 'absolute',
-    top: '-3px',
-    right: '-3px',
-    width: '15px',
-    height: '15px',
-    borderRadius: '50%',
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-  },
-  beaconDot: {
-    width: '9px',
-    height: '9px',
-    borderRadius: '50%',
-    backgroundColor: '#10b981',
-  },
-  tagBadge: {
+  badge: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
+    padding: '4px 10px',
+    borderRadius: '100px',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    color: '#34d399',
     fontSize: '11px',
     fontWeight: 700,
-    letterSpacing: '0.08em',
-    color: '#065f46',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    padding: '4px 14px',
-    borderRadius: '30px',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
-    marginBottom: '12px',
+    letterSpacing: '0.05em',
+    marginBottom: '12px'
   },
   title: {
-    margin: 0,
-    fontSize: '28px',
+    fontSize: '24px',
     fontWeight: 800,
-    color: '#0f172a',
-    letterSpacing: '-0.03em',
+    color: '#ffffff',
+    margin: '0 0 6px 0',
+    letterSpacing: '-0.02em'
   },
   subtitle: {
-    margin: '8px 0 0 0',
     fontSize: '13.5px',
-    color: '#475569',
-    lineHeight: 1.5,
+    color: '#94a3b8',
+    lineHeight: '1.5',
+    margin: 0
   },
-  errorAlert: {
+  errorBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    backgroundColor: 'rgba(254, 242, 242, 0.9)',
-    color: '#b91c1c',
-    border: '1px solid #fecaca',
-    padding: '12px 14px',
-    borderRadius: '14px',
-    marginBottom: '18px',
+    gap: '8px',
+    padding: '10px 14px',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    border: '1px solid rgba(239, 68, 68, 0.28)',
+    color: '#f87171',
     fontSize: '13px',
-    lineHeight: 1.4,
+    marginBottom: '18px'
   },
-  successAlert: {
+  successBox: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    backgroundColor: 'rgba(236, 253, 245, 0.95)',
-    color: '#047857',
-    border: '1px solid #a7f3d0',
-    padding: '12px 14px',
-    borderRadius: '14px',
-    marginBottom: '18px',
+    gap: '8px',
+    padding: '10px 14px',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.28)',
+    color: '#34d399',
     fontSize: '13px',
-    lineHeight: 1.4,
+    marginBottom: '18px'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '18px',
-  },
-  fieldWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    textAlign: 'left',
+    gap: '18px'
   },
   label: {
-    fontSize: '13px',
+    display: 'block',
+    fontSize: '12.5px',
     fontWeight: 600,
-    color: '#1e293b',
+    color: '#cbd5e1',
+    marginBottom: '6px'
   },
-  inputContainer: {
+  inputWrapper: {
     position: 'relative',
     display: 'flex',
-    alignItems: 'center',
-    width: '100%',
+    alignItems: 'center'
   },
   inputIcon: {
     position: 'absolute',
     left: '14px',
-    pointerEvents: 'none',
+    pointerEvents: 'none'
   },
   input: {
     width: '100%',
-    padding: '13px 14px 13px 44px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '14px',
+    padding: '11px 14px 11px 40px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     fontSize: '14px',
     outline: 'none',
-    boxSizing: 'border-box',
-    backgroundColor: 'rgba(248, 250, 252, 0.7)',
-    color: '#0f172a',
-    transition: 'all 0.2s ease',
+    boxSizing: 'border-box'
   },
   submitBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    padding: '14px 20px',
+    padding: '12px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '14px',
-    fontWeight: 600,
-    fontSize: '14.5px',
-    marginTop: '4px',
-    boxSizing: 'border-box',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
+    transition: 'all 0.2s ease',
+    marginTop: '6px'
   },
-  securityStrip: {
-    marginTop: '26px',
-    paddingTop: '18px',
-    borderTop: '1px solid rgba(203, 213, 225, 0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-  },
-  securityPoint: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    fontSize: '12px',
-    color: '#475569',
-    fontWeight: 500,
-  },
-  footerLinkWrapper: {
-    marginTop: '18px',
+  footer: {
+    marginTop: '22px',
     textAlign: 'center',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+    paddingTop: '16px'
   },
-  backAnchor: {
+  backLink: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    color: '#64748b',
-    fontSize: '13.5px',
-    textDecoration: 'none',
+    color: '#34d399',
+    fontSize: '13px',
     fontWeight: 600,
-    transition: 'all 0.2s ease',
-  },
+    textDecoration: 'none'
+  }
 };
+
+export default ForgotPassword;

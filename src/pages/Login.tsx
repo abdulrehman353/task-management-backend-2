@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axiosClient from '../api/axiosClient';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
-  Mail, 
   Lock, 
-  AlertCircle, 
+  Mail, 
   ArrowRight, 
   Layers, 
+  ShieldCheck, 
+  Zap, 
   CheckCircle2, 
-  Sparkles,
-  ShieldCheck,
-  Eye,
-  EyeOff
+  Eye, 
+  EyeOff, 
+  AlertCircle 
 } from 'lucide-react';
+import axiosClient from '../api/axiosClient';
 
-export default function Login() {
+const Login: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,486 +22,527 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
+      const payload = {
+        email: email.trim(),
+        Email: email.trim(),
+        password: password,
+        Password: password
+      };
 
-      const res = await axiosClient.post('/auth/login', {
-        Email: email,
-        Password: password,
-      });
+      const response = await axiosClient.post('/auth/login', payload);
+      const data = response?.data;
+      
+      const token = data?.token || data?.access_token || data?.data?.token;
+      const user = data?.user || data?.data?.user;
 
-      if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
+      if (token) {
+        localStorage.setItem('token', token);
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        navigate('/dashboard');
+      } else if (data) {
+        navigate('/dashboard');
+      } else {
+        setError('Authentication succeeded but no token received.');
       }
-      if (res.data.user) {
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-      }
-
-      navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid email or password.');
+      console.error('Login error:', err);
+      const serverMsg = 
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        err.message || 
+        'Server Error during login';
+      setError(serverMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={styles.viewport}>
+    <div style={styles.pageWrapper}>
+      {/* Responsive Media Queries */}
       <style>{`
-        @keyframes floatSlow1 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(70px, -50px) scale(1.18); }
-        }
-        @keyframes floatSlow2 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(-60px, 40px) scale(1.22); }
-        }
-        .aura-blob-1 {
-          animation: floatSlow1 10s ease-in-out infinite;
-        }
-        .aura-blob-2 {
-          animation: floatSlow2 12s ease-in-out infinite;
-        }
-        .glass-panel {
-          backdrop-filter: blur(28px);
-          -webkit-backdrop-filter: blur(28px);
-          background: rgba(255, 255, 255, 0.78);
-          border: 1px solid rgba(255, 255, 255, 0.9);
-          box-shadow: 0 35px 80px -20px rgba(6, 78, 59, 0.18), 
-                      0 15px 35px -10px rgba(15, 23, 42, 0.08),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .glass-panel:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 45px 90px -20px rgba(16, 185, 129, 0.28), 
-                      0 20px 40px -10px rgba(15, 23, 42, 0.1),
-                      inset 0 1px 2px rgba(255, 255, 255, 1);
-        }
-        .luxury-input:focus {
-          background: #ffffff !important;
-          border-color: #10b981 !important;
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 4px 12px rgba(16, 185, 129, 0.08) !important;
-        }
-        .emerald-cta {
+        .login-grid-container {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 64px;
+          align-items: center;
+          width: 100%;
+          max-width: 1120px;
           position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
-          box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.45);
-          transition: all 0.25s ease;
+          z-index: 10;
         }
-        .emerald-cta:hover:not(:disabled) {
-          transform: translateY(-1.5px);
-          box-shadow: 0 16px 32px -6px rgba(16, 185, 129, 0.55);
+
+        .login-branding {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          color: #f8fafc;
         }
-        .emerald-cta:active:not(:disabled) {
-          transform: translateY(0);
+
+        .login-auth-card {
+          width: 100%;
+          max-width: 440px;
+          background-color: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.08);
+          border-radius: 24px;
+          padding: 36px 32px;
+          box-sizing: border-box;
         }
-        .eye-toggle-btn:hover {
-          opacity: 0.8;
-        }
-        @media (max-width: 480px) {
-          .glass-panel {
-            padding: 30px 22px !important;
-            border-radius: 24px !important;
+
+        /* Tablet View (769px to 1024px) */
+        @media (max-width: 1024px) {
+          .login-grid-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            max-width: 580px;
           }
-          .luxury-input {
-            font-size: 16px !important;
+          .login-branding {
+            text-align: center;
+            align-items: center;
+          }
+          .login-branding .brand-subtitle {
+            text-align: center;
+          }
+          .login-branding .feature-list {
+            display: none; /* Tablet par cleaner experience */
+          }
+          .login-auth-card {
+            max-width: 100%;
+          }
+        }
+
+        /* Mobile View (≤ 768px) - Android / iOS */
+        @media (max-width: 768px) {
+          .login-grid-container {
+            grid-template-columns: 1fr;
+            gap: 0px;
+            max-width: 100%;
+          }
+          .login-branding {
+            display: none !important; /* Mobile par direct login box show hoga */
+          }
+          .login-auth-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 28px 20px !important;
+            border-radius: 20px !important;
           }
         }
       `}</style>
 
-      {/* Dynamic Animated Ambient Orbs */}
-      <div style={styles.orbContainer}>
-        <div className="aura-blob-1" style={styles.orb1} />
-        <div className="aura-blob-2" style={styles.orb2} />
-        <div style={styles.orb3} />
-        <div style={styles.gridOverlay} />
-      </div>
+      <div style={styles.glowTopLeft}></div>
+      <div style={styles.glowBottomRight}></div>
 
-      <div className="glass-panel" style={styles.card}>
-        <div style={styles.header}>
-          {/* Glowing 3D Brand Badge */}
-          <div style={styles.logoBadgeContainer}>
-            <div style={styles.logoBadgeGlow} />
-            <div style={styles.logoBadgeInner}>
-              <Layers size={24} color="#ffffff" strokeWidth={2.4} />
-            </div>
-            <div style={styles.liveBeacon}>
-              <span style={styles.beaconDot} />
-            </div>
+      <div className="login-grid-container">
+        {/* Left Side: Enterprise Feature Highlights (Desktop/Tablet) */}
+        <div className="login-branding">
+          <div style={styles.brandBadge}>
+            <span style={styles.badgePulse}></span>
+            Enterprise Grade Platform
           </div>
 
-          <div style={styles.tagBadge}>
-            <Sparkles size={12} color="#047857" />
-            <span>NEXT-GEN ENTERPRISE</span>
-          </div>
+          <h1 style={styles.brandTitle}>
+            Automate & Elevate <br />
+            <span style={styles.brandGradientText}>Team Execution</span>
+          </h1>
 
-          <h1 style={styles.title}>Workspace Sign In</h1>
-          <p style={styles.subtitle}>Enter your corporate credentials to launch dashboard</p>
+          <p style={styles.brandSubtitle} className="brand-subtitle">
+            The modern orchestration layer for engineering, design, and operations teams to track deliverables in real-time.
+          </p>
+
+          <div style={styles.featureList} className="feature-list">
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <ShieldCheck size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>Role-Based Access Control</h4>
+                <p style={styles.featureDesc}>Granular permission matrices for complete audit compliance.</p>
+              </div>
+            </div>
+
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <Zap size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>Synchronous Task Pipelines</h4>
+                <p style={styles.featureDesc}>MinIO asset storage and instant Kanban progress monitoring.</p>
+              </div>
+            </div>
+
+            <div style={styles.featureItem}>
+              <div style={styles.featureIconBox}>
+                <CheckCircle2 size={18} color="#10b981" />
+              </div>
+              <div>
+                <h4 style={styles.featureTitle}>Zero Latency PWA</h4>
+                <p style={styles.featureDesc}>Seamless native desktop & mobile offline experience.</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {error && (
-          <div style={styles.errorAlert}>
-            <AlertCircle size={17} style={{ flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} style={styles.form}>
-          <div style={styles.fieldWrapper}>
-            <label style={styles.label}>Corporate Email</label>
-            <div style={styles.inputContainer}>
-              <Mail size={18} color="#64748b" style={styles.inputIcon} />
-              <input
-                type="email"
-                required
-                className="luxury-input"
-                placeholder="developer@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={styles.input}
-              />
+        {/* Right Side: Sign In Card */}
+        <div style={styles.cardContainer}>
+          <div className="login-auth-card">
+            <div style={styles.cardHeader}>
+              <div style={styles.logoBadge}>
+                <Layers size={26} color="#ffffff" />
+              </div>
+              <h2 style={styles.cardTitle}>Sign in to TaskFlow</h2>
+              <p style={styles.cardSubtitle}>Enter your corporate credentials to continue</p>
             </div>
-          </div>
 
-          <div style={styles.fieldWrapper}>
-            <div style={styles.passMeta}>
-              <label style={styles.label}>Secure Password</label>
-              <Link to="/forgot-password" style={styles.forgotAnchor}>
-                Forgot Password?
-              </Link>
-            </div>
-            <div style={styles.inputContainer}>
-              <Lock size={18} color="#64748b" style={styles.inputIcon} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                className="luxury-input"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ ...styles.input, paddingRight: '44px' }}
-              />
+            {error && (
+              <div style={styles.errorBox}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Corporate Email</label>
+                <div style={styles.inputWrapper}>
+                  <Mail size={18} style={styles.inputIcon} />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="developer@company.com"
+                    style={styles.input}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.inputGroup}>
+                <div style={styles.passwordHeader}>
+                  <label style={styles.label}>Master Password</label>
+                  <Link to="/forgot-password" style={styles.forgotLink}>
+                    Forgot Password?
+                  </Link>
+                </div>
+                <div style={styles.inputWrapper}>
+                  <Lock size={18} style={styles.inputIcon} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    style={styles.input}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={styles.eyeBtn}
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                  </button>
+                </div>
+              </div>
+
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="eye-toggle-btn"
-                style={styles.eyeBtn}
-                title={showPassword ? 'Hide password' : 'Show password'}
+                type="submit"
+                disabled={loading}
+                style={{
+                  ...styles.submitBtn,
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
               >
-                {showPassword ? (
-                  <Eye size={18} color="#10b981" />
-                ) : (
-                  <EyeOff size={18} color="#64748b" />
+                {loading ? 'Authenticating...' : (
+                  <>
+                    <span>Enter Workspace</span>
+                    <ArrowRight size={18} />
+                  </>
                 )}
               </button>
+            </form>
+
+            <div style={styles.cardFooter}>
+              <span style={styles.footerText}>Don't have enterprise access? </span>
+              <Link to="/signup" style={styles.signUpLink}>
+                Register Account
+              </Link>
             </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="emerald-cta"
-            style={{
-              ...styles.submitBtn,
-              opacity: loading ? 0.75 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            <span>{loading ? 'Authenticating...' : 'Access Workspace'}</span>
-            {!loading && <ArrowRight size={17} strokeWidth={2.4} />}
-          </button>
-        </form>
-
-        <div style={styles.securityStrip}>
-          <div style={styles.securityPoint}>
-            <ShieldCheck size={14} color="#059669" />
-            <span>Zero-Trust Architecture</span>
-          </div>
-          <span style={{ color: '#cbd5e1' }}>•</span>
-          <div style={styles.securityPoint}>
-            <CheckCircle2 size={14} color="#059669" />
-            <span>RBAC 2.0 Certified</span>
-          </div>
-        </div>
-
-        <div style={styles.footerLinkWrapper}>
-          <span style={{ color: '#64748b', fontSize: '13.5px' }}>Need corporate access? </span>
-          <Link to="/signup" style={styles.signupAnchor}>
-            Create an Account
-          </Link>
         </div>
       </div>
     </div>
   );
-}
+};
 
 const styles: { [key: string]: React.CSSProperties } = {
-  viewport: {
+  pageWrapper: {
     minHeight: '100vh',
-    width: '100vw',
-    position: 'relative',
+    width: '100%',
+    backgroundColor: '#090d16',
+    backgroundImage: `
+      radial-gradient(at 10% 20%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+      radial-gradient(at 90% 80%, rgba(5, 150, 105, 0.10) 0px, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+    `,
+    backgroundSize: '100% 100%, 100% 100%, 48px 48px, 48px 48px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '24px 16px',
-    backgroundColor: '#0f172a',
-    overflow: 'hidden',
-    boxSizing: 'border-box',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-  orbContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: 'hidden',
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  orb1: {
-    position: 'absolute',
-    top: '-5%',
-    left: '12%',
-    width: '580px',
-    height: '580px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.45) 0%, rgba(5, 150, 105, 0.15) 50%, transparent 70%)',
-    filter: 'blur(70px)',
-  },
-  orb2: {
-    position: 'absolute',
-    bottom: '-10%',
-    right: '15%',
-    width: '620px',
-    height: '620px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(14, 165, 233, 0.35) 0%, rgba(6, 182, 212, 0.12) 50%, transparent 70%)',
-    filter: 'blur(80px)',
-  },
-  orb3: {
-    position: 'absolute',
-    top: '35%',
-    right: '32%',
-    width: '420px',
-    height: '420px',
-    borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, transparent 65%)',
-    filter: 'blur(60px)',
-  },
-  gridOverlay: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px)`,
-    backgroundSize: '40px 40px',
-    maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-    WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, transparent 80%)',
-  },
-  card: {
     position: 'relative',
-    zIndex: 1,
-    width: '100%',
-    maxWidth: '450px',
-    borderRadius: '28px',
-    padding: '44px 38px',
+    overflowX: 'hidden',
+    padding: '24px 16px',
     boxSizing: 'border-box',
+    fontFamily: '"Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, sans-serif'
   },
-  header: {
-    textAlign: 'center',
-    marginBottom: '28px',
+  glowTopLeft: {
+    position: 'absolute',
+    top: '-15%',
+    left: '-10%',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
+  glowBottomRight: {
+    position: 'absolute',
+    bottom: '-15%',
+    right: '-10%',
+    width: '500px',
+    height: '500px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(52, 211, 153, 0.12) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
+  brandBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    alignSelf: 'flex-start',
+    padding: '6px 14px',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    borderRadius: '100px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#34d399',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase'
+  },
+  badgePulse: {
+    width: '7px',
+    height: '7px',
+    borderRadius: '50%',
+    backgroundColor: '#10b981',
+    boxShadow: '0 0 10px #10b981'
+  },
+  brandTitle: {
+    fontSize: 'clamp(28px, 4vw, 44px)',
+    lineHeight: '1.15',
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+    color: '#ffffff',
+    margin: 0
+  },
+  brandGradientText: {
+    background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent'
+  },
+  brandSubtitle: {
+    fontSize: '15px',
+    lineHeight: '1.6',
+    color: '#94a3b8',
+    margin: 0,
+    maxWidth: '480px'
+  },
+  featureList: {
     display: 'flex',
     flexDirection: 'column',
+    gap: '18px',
+    marginTop: '12px'
+  },
+  featureItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '14px'
+  },
+  featureIconBox: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '10px',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
+    display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0
   },
-  logoBadgeContainer: {
-    position: 'relative',
-    marginBottom: '16px',
+  featureTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#f1f5f9',
+    margin: '0 0 3px 0'
   },
-  logoBadgeGlow: {
-    position: 'absolute',
-    inset: '-6px',
-    borderRadius: '22px',
-    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.6), rgba(14, 165, 233, 0.4))',
-    filter: 'blur(10px)',
-    zIndex: -1,
+  featureDesc: {
+    fontSize: '13px',
+    color: '#64748b',
+    margin: 0
   },
-  logoBadgeInner: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '18px',
+  cardContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  cardHeader: {
+    textAlign: 'center',
+    marginBottom: '24px'
+  },
+  logoBadge: {
+    width: '52px',
+    height: '52px',
+    borderRadius: '16px',
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 12px 24px -6px rgba(16, 185, 129, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4)',
+    margin: '0 auto 16px auto',
+    boxShadow: '0 10px 25px rgba(16, 185, 129, 0.35)',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
   },
-  liveBeacon: {
-    position: 'absolute',
-    top: '-3px',
-    right: '-3px',
-    width: '15px',
-    height: '15px',
-    borderRadius: '50%',
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-  },
-  beaconDot: {
-    width: '9px',
-    height: '9px',
-    borderRadius: '50%',
-    backgroundColor: '#10b981',
-  },
-  tagBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '6px',
-    fontSize: '11px',
+  cardTitle: {
+    fontSize: '22px',
     fontWeight: 700,
-    letterSpacing: '0.08em',
-    color: '#065f46',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    padding: '4px 14px',
-    borderRadius: '30px',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
-    marginBottom: '12px',
+    color: '#ffffff',
+    letterSpacing: '-0.02em',
+    margin: '0 0 6px 0'
   },
-  title: {
-    margin: 0,
-    fontSize: '28px',
-    fontWeight: 800,
-    color: '#0f172a',
-    letterSpacing: '-0.03em',
-  },
-  subtitle: {
-    margin: '8px 0 0 0',
+  cardSubtitle: {
     fontSize: '13.5px',
-    color: '#475569',
-    lineHeight: 1.5,
+    color: '#94a3b8',
+    margin: 0
   },
-  errorAlert: {
+  errorBox: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: 'rgba(254, 242, 242, 0.9)',
-    color: '#b91c1c',
-    border: '1px solid #fecaca',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
+    color: '#f87171',
+    borderRadius: '12px',
     padding: '12px 14px',
-    borderRadius: '14px',
-    marginBottom: '20px',
     fontSize: '13px',
-    lineHeight: 1.4,
+    marginBottom: '20px'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '18px',
+    gap: '16px'
   },
-  fieldWrapper: {
+  inputGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
-    textAlign: 'left',
+    gap: '7px'
   },
   label: {
     fontSize: '13px',
     fontWeight: 600,
-    color: '#1e293b',
+    color: '#cbd5e1'
   },
-  passMeta: {
+  passwordHeader: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'center'
   },
-  forgotAnchor: {
-    fontSize: '12.5px',
-    color: '#059669',
+  forgotLink: {
+    fontSize: '12px',
+    color: '#34d399',
     textDecoration: 'none',
-    fontWeight: 600,
+    fontWeight: 500
   },
-  inputContainer: {
+  inputWrapper: {
     position: 'relative',
     display: 'flex',
-    alignItems: 'center',
-    width: '100%',
+    alignItems: 'center'
   },
   inputIcon: {
     position: 'absolute',
     left: '14px',
-    pointerEvents: 'none',
+    color: '#64748b',
+    pointerEvents: 'none'
+  },
+  input: {
+    width: '100%',
+    padding: '12px 14px 12px 42px',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box'
   },
   eyeBtn: {
     position: 'absolute',
     right: '12px',
     background: 'transparent',
     border: 'none',
-    outline: 'none',
+    color: '#64748b',
     cursor: 'pointer',
-    padding: '4px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'opacity 0.2s ease',
-  },
-  input: {
-    width: '100%',
-    padding: '13px 14px 13px 44px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '14px',
-    fontSize: '14px',
-    outline: 'none',
-    boxSizing: 'border-box',
-    backgroundColor: 'rgba(248, 250, 252, 0.7)',
-    color: '#0f172a',
-    transition: 'all 0.2s ease',
+    padding: '4px'
   },
   submitBtn: {
+    marginTop: '6px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    padding: '14px 20px',
+    width: '100%',
+    padding: '13px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    borderRadius: '14px',
-    fontWeight: 600,
+    borderRadius: '12px',
     fontSize: '14.5px',
-    marginTop: '6px',
-    boxSizing: 'border-box',
+    fontWeight: 600,
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
+    transition: 'all 0.2s ease'
   },
-  securityStrip: {
-    marginTop: '26px',
-    paddingTop: '18px',
-    borderTop: '1px solid rgba(203, 213, 225, 0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '10px',
-  },
-  securityPoint: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '5px',
-    fontSize: '12px',
-    color: '#475569',
-    fontWeight: 500,
-  },
-  footerLinkWrapper: {
-    marginTop: '18px',
+  cardFooter: {
+    marginTop: '20px',
     textAlign: 'center',
+    fontSize: '13px',
+    color: '#64748b',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+    paddingTop: '16px'
   },
-  signupAnchor: {
-    color: '#059669',
-    fontSize: '13.5px',
+  footerText: {
+    color: '#94a3b8'
+  },
+  signUpLink: {
+    color: '#34d399',
     textDecoration: 'none',
-    fontWeight: 700,
-  },
+    fontWeight: 600
+  }
 };
+
+export default Login;

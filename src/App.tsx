@@ -4,10 +4,11 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
-// Components folder se correct import path
+// Components
 import DashboardLayout from './components/DashboardLayout';
+import ProtectedRoute from './components/ProtectedRoute'; // <-- Naya Protected Route Guard
 
-// Pages folder se actual components
+// Pages
 import Organizations from './pages/Organizations';
 import Projects from './pages/Projects';
 import Tickets from './pages/Tickets';
@@ -15,6 +16,7 @@ import Attachments from './pages/Attachments';
 import Users from './pages/Users';
 import Roles from './pages/Roles';
 import Permissions from './pages/Permissions';
+import DashboardOverview from './pages/DashboardOverview';
 
 export default function App() {
   return (
@@ -23,15 +25,25 @@ export default function App() {
         {/* Default route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Auth Flows */}
+        {/* Public Auth Flows */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protected Dashboard Portal with Responsive Layout */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/dashboard/organizations" replace />} />
+        {/* Protected Dashboard Portal (Bina login koi access nahi kar sakta) */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          {/* Default /dashboard opens DashboardOverview */}
+          <Route index element={<DashboardOverview />} />
+          <Route path="overview" element={<DashboardOverview />} />
+          
           <Route path="organizations" element={<Organizations />} />
           <Route path="projects" element={<Projects />} />
           <Route path="tickets" element={<Tickets />} />

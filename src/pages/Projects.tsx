@@ -144,35 +144,35 @@ export default function Projects() {
     <div style={styles.pageContainer}>
       <style>{`
         .proj-card-glass {
-          background: rgba(255, 255, 255, 0.86);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           padding: 22px;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
           cursor: pointer;
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
         }
         .proj-card-glass:hover {
           transform: translateY(-4px);
-          border-color: rgba(16, 185, 129, 0.5);
-          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.18), 0 6px 12px -4px rgba(15, 23, 42, 0.04);
+          border-color: rgba(16, 185, 129, 0.45);
+          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.2), 0 8px 16px rgba(0, 0, 0, 0.4);
         }
         .proj-modal-input:focus {
-          background: #ffffff !important;
+          background: rgba(2, 6, 23, 0.85) !important;
           border-color: #10b981 !important;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
         }
         .emerald-action-btn:hover {
           transform: translateY(-1px);
-          box-shadow: 0 8px 16px -3px rgba(16, 185, 129, 0.35) !important;
+          box-shadow: 0 10px 22px -4px rgba(16, 185, 129, 0.5) !important;
         }
         .icon-action-hover:hover {
-          background-color: #f1f5f9 !important;
+          background-color: rgba(255, 255, 255, 0.08) !important;
           transform: scale(1.06);
         }
       `}</style>
@@ -184,8 +184,8 @@ export default function Projects() {
             <ArrowLeft size={15} />
             <span>All Organizations</span>
           </button>
-          <span style={{ color: '#cbd5e1' }}>/</span>
-          <span style={{ color: '#0f172a', fontWeight: 700 }}>
+          <span style={{ color: '#64748b' }}>/</span>
+          <span style={{ color: '#ffffff', fontWeight: 700 }}>
             {orgNameParam ? orgNameParam : `Organization #${orgIdParam}`}
           </span>
           <span style={styles.filteredBadge}>Filtered View</span>
@@ -196,7 +196,7 @@ export default function Projects() {
       <div style={styles.topBar}>
         <div>
           <div style={styles.pillBadge}>
-            <Sparkles size={11} color="#059669" />
+            <Sparkles size={11} color="#34d399" />
             <span>PORTFOLIO DIRECTORY</span>
           </div>
           <h2 style={styles.pageTitle}>
@@ -226,12 +226,12 @@ export default function Projects() {
       {loading ? (
         <div style={styles.loadingBox}>
           <div style={styles.spinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Loading projects...</p>
+          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Loading projects...</p>
         </div>
       ) : displayedProjects.length === 0 ? (
         <div style={styles.emptyBox}>
-          <FolderKanban size={34} color="#cbd5e1" style={{ marginBottom: '10px' }} />
-          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No projects available</h4>
+          <FolderKanban size={34} color="#64748b" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9' }}>No projects available</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
             {orgIdParam
               ? `No projects assigned to "${orgNameParam || `Organization #${orgIdParam}`}". Click "New Project" to add one.`
@@ -256,7 +256,7 @@ export default function Projects() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       <div style={styles.iconBox}>
-                        <FolderKanban size={20} color="#059669" strokeWidth={2.2} />
+                        <FolderKanban size={20} color="#10b981" strokeWidth={2.2} />
                       </div>
                       <div>
                         <h3 style={styles.cardHeading}>{pName}</h3>
@@ -272,7 +272,7 @@ export default function Projects() {
                     </div>
                     
                     {/* Action Buttons: Assign Org & Delete */}
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
                       <button 
                         onClick={() => handleReassignOrg(pId, pOrg)} 
                         className="icon-action-hover"
@@ -289,7 +289,7 @@ export default function Projects() {
                         style={styles.deleteBtn} 
                         title="Delete Project"
                       >
-                        <Trash2 size={15} color="#ef4444" />
+                        <Trash2 size={15} color="#f87171" />
                       </button>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export default function Projects() {
                   <div style={styles.footerPrompt}>
                     <span>Inspect Tickets</span>
                     <div style={styles.arrowCircle}>
-                      <ArrowUpRight size={14} color="#059669" strokeWidth={2.4} />
+                      <ArrowUpRight size={14} color="#10b981" strokeWidth={2.4} />
                     </div>
                   </div>
                 </div>
@@ -325,14 +325,14 @@ export default function Projects() {
             <div style={styles.modalHeader}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={styles.modalIconBox}>
-                  <FolderKanban size={18} color="#059669" />
+                  <FolderKanban size={18} color="#10b981" />
                 </div>
-                <h3 style={{ margin: 0, color: '#0f172a', fontSize: '18px', fontWeight: 700 }}>
+                <h3 style={{ margin: 0, color: '#ffffff', fontSize: '18px', fontWeight: 700 }}>
                   Create New Project
                 </h3>
               </div>
               <button onClick={() => setShowModal(false)} style={styles.closeBtn}>
-                <X size={18} color="#64748b" />
+                <X size={18} color="#94a3b8" />
               </button>
             </div>
 
@@ -401,12 +401,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '10px',
     marginBottom: '20px',
     padding: '8px 14px',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(12px)',
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     borderRadius: '12px',
-    border: '1px solid rgba(226, 232, 240, 0.85)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     fontSize: '13px',
-    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)',
+    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
   },
   backBtn: {
     display: 'flex',
@@ -414,7 +415,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
     background: 'none',
     border: 'none',
-    color: '#059669',
+    color: '#34d399',
     cursor: 'pointer',
     fontWeight: 700,
     padding: 0,
@@ -423,9 +424,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   filteredBadge: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    border: '1px solid rgba(16, 185, 129, 0.3)',
     padding: '2px 8px',
     borderRadius: '12px',
   },
@@ -440,27 +441,27 @@ const styles: { [key: string]: React.CSSProperties } = {
   pillBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     fontSize: '10.5px',
     fontWeight: 700,
     letterSpacing: '0.07em',
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '3px 10px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '4px 12px',
     borderRadius: '20px',
     marginBottom: '8px',
   },
   pageTitle: {
     margin: 0,
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 800,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.025em',
   },
   pageSubtitle: {
     margin: '6px 0 0 0',
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '14px',
     lineHeight: 1.5,
   },
@@ -476,7 +477,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     fontSize: '14px',
     cursor: 'pointer',
-    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
     transition: 'all 0.2s ease',
   },
   grid: {
@@ -485,11 +486,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '20px',
   },
   iconBox: {
-    width: '40px',
-    height: '40px',
+    width: '42px',
+    height: '42px',
     borderRadius: '12px',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -497,9 +498,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cardHeading: {
     margin: 0,
-    fontSize: '16px',
+    fontSize: '16.5px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.01em',
   },
   idMetaRow: {
@@ -511,27 +512,28 @@ const styles: { [key: string]: React.CSSProperties } = {
   idBadge: {
     fontSize: '11px',
     fontWeight: 600,
-    color: '#94a3b8',
+    color: '#64748b',
   },
   orgTagBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '3px',
+    gap: '4px',
     fontSize: '10.5px',
     fontWeight: 600,
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     padding: '1px 7px',
     borderRadius: '6px',
   },
   desc: {
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '13.5px',
     lineHeight: '1.55',
     margin: '16px 0',
   },
   cardFooter: {
-    borderTop: '1px solid #f1f5f9',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
     paddingTop: '12px',
     display: 'flex',
     justifyContent: 'space-between',
@@ -543,7 +545,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
     fontSize: '11.5px',
     fontWeight: 600,
-    color: '#94a3b8',
+    color: '#64748b',
   },
   footerPrompt: {
     marginTop: '10px',
@@ -552,13 +554,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'space-between',
     fontSize: '12.5px',
     fontWeight: 700,
-    color: '#059669',
+    color: '#34d399',
   },
   arrowCircle: {
     width: '24px',
     height: '24px',
     borderRadius: '50%',
-    backgroundColor: '#ecfdf5',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -567,13 +570,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    backgroundColor: '#ecfdf5',
-    color: '#047857',
-    border: '1px solid #a7f3d0',
-    padding: '4px 8px',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    color: '#34d399',
+    border: '1px solid rgba(16, 185, 129, 0.28)',
+    padding: '5px 9px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '11px',
+    fontSize: '11.5px',
     fontWeight: 600,
     transition: 'all 0.15s ease',
   },
@@ -594,8 +597,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
-    backdropFilter: 'blur(6px)',
+    backgroundColor: 'rgba(2, 6, 23, 0.75)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -604,13 +608,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxSizing: 'border-box',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
     padding: '28px',
     borderRadius: '20px',
     width: '100%',
     maxWidth: '460px',
-    boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
-    border: '1px solid rgba(226, 232, 240, 0.9)',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     boxSizing: 'border-box',
   },
   modalHeader: {
@@ -620,20 +626,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '20px',
   },
   modalIconBox: {
-    width: '34px',
-    height: '34px',
+    width: '36px',
+    height: '36px',
     borderRadius: '10px',
-    backgroundColor: '#ecfdf5',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeBtn: {
-    background: 'none',
+    background: 'transparent',
     border: 'none',
     cursor: 'pointer',
     padding: '4px',
     borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
   },
   form: {
     display: 'flex',
@@ -644,19 +653,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'block',
     fontSize: '13px',
     fontWeight: 600,
-    color: '#334151',
+    color: '#cbd5e1',
     marginBottom: '6px',
   },
   input: {
     width: '100%',
     padding: '11px 14px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
     fontSize: '14px',
     boxSizing: 'border-box',
     outline: 'none',
-    backgroundColor: '#f8fafc',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     transition: 'all 0.15s ease',
   },
   modalActions: {
@@ -666,17 +675,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '8px',
   },
   cancelBtn: {
-    padding: '9px 16px',
-    border: '1px solid #e2e8f0',
-    background: '#ffffff',
+    padding: '10px 16px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
     borderRadius: '10px',
     cursor: 'pointer',
-    color: '#64748b',
+    color: '#94a3b8',
     fontWeight: 600,
     fontSize: '13.5px',
   },
   submitBtn: {
-    padding: '9px 20px',
+    padding: '10px 20px',
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
@@ -684,14 +693,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     fontSize: '13.5px',
-    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
   },
   emptyBox: {
     padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '16px',
-    border: '1px dashed #cbd5e1',
+    border: '1px dashed rgba(255, 255, 255, 0.1)',
   },
   loadingBox: {
     display: 'flex',
@@ -704,7 +713,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '32px',
     height: '32px',
-    border: '3px solid #ecfdf5',
+    border: '3px solid rgba(16, 185, 129, 0.15)',
     borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
@@ -713,11 +722,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    color: '#f87171',
     padding: '12px 16px',
     borderRadius: '12px',
-    border: '1px solid #fee2e2',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
     marginBottom: '20px',
     fontSize: '13.5px',
   },

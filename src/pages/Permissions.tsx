@@ -111,45 +111,44 @@ export default function Permissions() {
     <div style={styles.pageContainer}>
       <style>{`
         .perm-card-glass {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           padding: 20px;
-          box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
         }
         .perm-table-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
         }
         .perm-input-glow:focus {
-          background: #ffffff !important;
+          background: rgba(2, 6, 23, 0.85) !important;
           border-color: #10b981 !important;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
         }
         .emerald-submit-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 8px 16px -3px rgba(16, 185, 129, 0.38) !important;
+          box-shadow: 0 10px 22px -4px rgba(16, 185, 129, 0.5) !important;
         }
         .slate-bind-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          background-color: #0f172a !important;
-          box-shadow: 0 8px 16px -3px rgba(15, 23, 42, 0.25) !important;
+          filter: brightness(1.15);
         }
         .perm-table-row {
           transition: background-color 0.15s ease;
         }
         .perm-table-row:hover {
-          background-color: rgba(248, 250, 252, 0.8);
+          background-color: rgba(255, 255, 255, 0.03);
         }
         .del-action-hover:hover {
-          background-color: #fef2f2 !important;
+          background-color: rgba(239, 68, 68, 0.15) !important;
           transform: scale(1.08);
         }
       `}</style>
@@ -157,7 +156,7 @@ export default function Permissions() {
       {/* Header Banner */}
       <div style={styles.headerSection}>
         <div style={styles.pillBadge}>
-          <Sparkles size={11} color="#059669" />
+          <Sparkles size={11} color="#34d399" />
           <span>CAPABILITY MAPPING</span>
         </div>
         <h2 style={styles.pageTitle}>Permissions Management</h2>
@@ -171,7 +170,7 @@ export default function Permissions() {
         <form onSubmit={handleCreate} className="perm-card-glass">
           <div style={styles.cardHeader}>
             <div style={styles.cardIconBox}>
-              <Plus size={16} color="#059669" strokeWidth={2.4} />
+              <Plus size={16} color="#10b981" strokeWidth={2.4} />
             </div>
             <label style={styles.cardHeaderTitle}>Create New Permission</label>
           </div>
@@ -204,7 +203,7 @@ export default function Permissions() {
         <form onSubmit={handleAssignToRole} className="perm-card-glass">
           <div style={styles.cardHeader}>
             <div style={styles.cardIconBox}>
-              <Link2 size={16} color="#059669" strokeWidth={2.4} />
+              <Link2 size={16} color="#10b981" strokeWidth={2.4} />
             </div>
             <label style={styles.cardHeaderTitle}>Bind Permission to Role</label>
           </div>
@@ -215,11 +214,11 @@ export default function Permissions() {
               className="perm-input-glow"
               style={styles.select}
             >
-              <option value="">Select Target Role</option>
+              <option value="" style={styles.optionDark}>Select Target Role</option>
               {roles.map((r) => {
                 const id = r.RoleID ?? r.id ?? r.role_id;
                 return (
-                  <option key={id} value={id}>
+                  <option key={id} value={id} style={styles.optionDark}>
                     {r.RoleName ?? r.name}
                   </option>
                 );
@@ -232,11 +231,11 @@ export default function Permissions() {
               className="perm-input-glow"
               style={styles.select}
             >
-              <option value="">Select Permission</option>
+              <option value="" style={styles.optionDark}>Select Permission</option>
               {permissions.map((p) => {
                 const id = p.PermissionID ?? p.id ?? p.permission_id;
                 return (
-                  <option key={id} value={id}>
+                  <option key={id} value={id} style={styles.optionDark}>
                     {p.PermissionName ?? p.name}
                   </option>
                 );
@@ -269,7 +268,7 @@ export default function Permissions() {
 
       {/* Permissions Table Section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '26px 0 12px 0' }}>
-        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
+        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#ffffff' }}>
           Registered Capabilities
         </h3>
         <span style={styles.countTag}>{permissions.length} Active Rules</span>
@@ -278,12 +277,12 @@ export default function Permissions() {
       {loading ? (
         <div style={styles.loadingBox}>
           <div style={styles.spinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Syncing permissions data...</p>
+          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Syncing permissions data...</p>
         </div>
       ) : permissions.length === 0 ? (
         <div style={styles.emptyBox}>
-          <ShieldCheck size={36} color="#cbd5e1" style={{ marginBottom: '10px' }} />
-          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No permissions registered</h4>
+          <ShieldCheck size={36} color="#64748b" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9' }}>No permissions registered</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
             Declare your first system permission using the input panel above.
           </p>
@@ -311,7 +310,7 @@ export default function Permissions() {
                     <td style={styles.td}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={styles.avatar}>
-                          <KeyRound size={15} color="#059669" strokeWidth={2.2} />
+                          <KeyRound size={15} color="#10b981" strokeWidth={2.2} />
                         </div>
                         <code style={styles.permCode}>{pName}</code>
                       </div>
@@ -323,7 +322,7 @@ export default function Permissions() {
                         style={styles.deleteBtn}
                         title="Delete Permission"
                       >
-                        <Trash2 size={16} color="#ef4444" />
+                        <Trash2 size={16} color="#f87171" />
                       </button>
                     </td>
                   </tr>
@@ -348,27 +347,27 @@ const styles: { [key: string]: React.CSSProperties } = {
   pillBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     fontSize: '10.5px',
     fontWeight: 700,
     letterSpacing: '0.07em',
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '3px 10px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '4px 12px',
     borderRadius: '20px',
     marginBottom: '8px',
   },
   pageTitle: {
     margin: 0,
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 800,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.025em',
   },
   pageSubtitle: {
     margin: '6px 0 0 0',
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '14px',
     lineHeight: 1.5,
   },
@@ -382,14 +381,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    marginBottom: '12px',
+    marginBottom: '14px',
   },
   cardIconBox: {
-    width: '28px',
-    height: '28px',
+    width: '30px',
+    height: '30px',
     borderRadius: '8px',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -397,17 +396,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   cardHeaderTitle: {
     fontSize: '13.5px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: '#ffffff',
   },
   input: {
     flex: 1,
     padding: '11px 14px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
     fontSize: '13.5px',
     outline: 'none',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     boxSizing: 'border-box',
     transition: 'all 0.15s ease',
   },
@@ -416,13 +415,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     minWidth: '140px',
     padding: '11px 12px',
     borderRadius: '10px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     fontSize: '13px',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     outline: 'none',
     cursor: 'pointer',
     transition: 'all 0.15s ease',
+  },
+  optionDark: {
+    backgroundColor: '#0f172a',
+    color: '#ffffff'
   },
   primaryBtn: {
     display: 'flex',
@@ -436,16 +439,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     fontSize: '13px',
-    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
     transition: 'all 0.2s ease',
   },
   assignBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#1e293b',
-    color: '#ffffff',
-    border: 'none',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    color: '#60a5fa',
+    border: '1px solid rgba(59, 130, 246, 0.3)',
     padding: '11px 18px',
     borderRadius: '10px',
     fontWeight: 600,
@@ -456,10 +459,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   countTag: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '2px 8px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '3px 10px',
     borderRadius: '12px',
   },
   table: {
@@ -469,36 +472,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
   },
   tableHeadRow: {
-    backgroundColor: '#f8fafc',
-    borderBottom: '1px solid #e2e8f0',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
   },
   th: {
     padding: '14px 20px',
-    color: '#475569',
+    color: '#64748b',
     fontWeight: 700,
-    fontSize: '12.5px',
-    letterSpacing: '0.03em',
+    fontSize: '12px',
+    letterSpacing: '0.04em',
     textTransform: 'uppercase',
   },
   tableRow: {
-    borderBottom: '1px solid #f1f5f9',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
   },
   td: {
-    padding: '15px 20px',
+    padding: '14px 20px',
     verticalAlign: 'middle',
   },
   idBadge: {
     display: 'inline-block',
     padding: '3px 8px',
     borderRadius: '6px',
-    backgroundColor: '#f1f5f9',
-    color: '#64748b',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
+    color: '#94a3b8',
     fontSize: '12px',
     fontWeight: 700,
   },
   avatar: {
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     width: '32px',
     height: '32px',
     borderRadius: '8px',
@@ -508,12 +512,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
   },
   permCode: {
-    backgroundColor: 'rgba(241, 245, 249, 0.9)',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     padding: '4px 10px',
     borderRadius: '8px',
     fontSize: '13px',
-    color: '#0f172a',
+    color: '#34d399',
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
     fontWeight: 600,
   },
@@ -531,9 +535,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   emptyBox: {
     padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '16px',
-    border: '1px dashed #cbd5e1',
+    border: '1px dashed rgba(255, 255, 255, 0.1)',
   },
   loadingBox: {
     display: 'flex',
@@ -546,7 +550,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '32px',
     height: '32px',
-    border: '3px solid #ecfdf5',
+    border: '3px solid rgba(16, 185, 129, 0.15)',
     borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
@@ -555,11 +559,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    color: '#f87171',
     padding: '12px 16px',
     borderRadius: '12px',
-    border: '1px solid #fee2e2',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
     marginBottom: '20px',
     fontSize: '13.5px',
   },

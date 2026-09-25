@@ -167,41 +167,41 @@ export default function Organizations() {
     <div style={styles.pageContainer}>
       <style>{`
         .org-card-glass {
-          background: rgba(255, 255, 255, 0.86);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           padding: 22px 20px;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
           cursor: pointer;
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
           position: relative;
           overflow: hidden;
         }
         .org-card-glass:hover {
           transform: translateY(-4px);
-          border-color: rgba(16, 185, 129, 0.5);
-          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.18), 0 6px 12px -4px rgba(15, 23, 42, 0.04);
+          border-color: rgba(16, 185, 129, 0.45);
+          box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.2), 0 8px 16px rgba(0, 0, 0, 0.4);
         }
         .org-create-input:focus {
-          background: #ffffff !important;
+          background: rgba(2, 6, 23, 0.85) !important;
           border-color: #10b981 !important;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
         }
         .org-create-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 10px 20px -4px rgba(16, 185, 129, 0.45) !important;
+          box-shadow: 0 10px 22px -4px rgba(16, 185, 129, 0.5) !important;
         }
         .card-action-btn:hover {
-          background-color: #f1f5f9 !important;
+          background-color: rgba(255, 255, 255, 0.08) !important;
           transform: scale(1.08);
         }
         .member-action-btn:hover {
-          filter: brightness(0.96);
+          filter: brightness(1.15);
           transform: translateY(-1px);
         }
       `}</style>
@@ -210,7 +210,7 @@ export default function Organizations() {
       <div style={styles.headerSection}>
         <div>
           <div style={styles.pillBadge}>
-            <Sparkles size={11} color="#059669" />
+            <Sparkles size={11} color="#34d399" />
             <span>ORGANIZATIONAL WORKSPACES</span>
           </div>
           <h2 style={styles.pageTitle}>Organizations</h2>
@@ -223,7 +223,7 @@ export default function Organizations() {
       {/* Quick Add Form */}
       <form onSubmit={handleCreate} style={styles.formCard}>
         <div style={styles.formInputWrapper}>
-          <Building2 size={18} color="#94a3b8" style={styles.formIcon} />
+          <Building2 size={18} color="#64748b" style={styles.formIcon} />
           <input
             type="text"
             placeholder="Enter new organization name..."
@@ -260,12 +260,12 @@ export default function Organizations() {
       {loading ? (
         <div style={styles.loadingBox}>
           <div style={styles.spinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Fetching workspaces...</p>
+          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Fetching workspaces...</p>
         </div>
       ) : orgs.length === 0 ? (
         <div style={styles.emptyBox}>
-          <Building2 size={32} color="#cbd5e1" style={{ marginBottom: '10px' }} />
-          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No organizations found</h4>
+          <Building2 size={32} color="#64748b" style={{ marginBottom: '10px' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9' }}>No organizations found</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>Create your first workspace using the input field above.</p>
         </div>
       ) : (
@@ -286,7 +286,7 @@ export default function Organizations() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={styles.iconWrapper}>
-                        <Building2 size={20} color="#059669" strokeWidth={2.2} />
+                        <Building2 size={20} color="#10b981" strokeWidth={2.2} />
                       </div>
                       <div>
                         <h4 style={styles.cardHeading}>{orgNameStr}</h4>
@@ -301,7 +301,7 @@ export default function Organizations() {
                         style={styles.actionIconBtn} 
                         title="Rename Organization"
                       >
-                        <Edit3 size={15} color="#64748b" />
+                        <Edit3 size={15} color="#94a3b8" />
                       </button>
                       <button 
                         onClick={() => handleDelete(orgId)} 
@@ -309,7 +309,7 @@ export default function Organizations() {
                         style={styles.actionIconBtn} 
                         title="Delete Organization"
                       >
-                        <Trash2 size={15} color="#ef4444" />
+                        <Trash2 size={15} color="#f87171" />
                       </button>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ export default function Organizations() {
                   {/* Owner Row */}
                   <div style={styles.ownerRow}>
                     <Users size={14} color="#64748b" />
-                    <span>Owner ID: <strong style={{ color: '#0f172a' }}>{ownerId}</strong></span>
+                    <span>Owner ID: <strong style={{ color: '#ffffff' }}>{ownerId}</strong></span>
                   </div>
 
                   {/* Member Allocation Sub-panel */}
@@ -338,7 +338,7 @@ export default function Organizations() {
                         type="button" 
                         onClick={() => handleAssignUser(orgId)} 
                         className="member-action-btn"
-                        style={{ ...styles.memberActionBtn, backgroundColor: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
+                        style={{ ...styles.memberActionBtn, backgroundColor: 'rgba(16, 185, 129, 0.12)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.28)' }}
                         title="Assign user to this Org"
                       >
                         <UserPlus size={13} />
@@ -349,7 +349,7 @@ export default function Organizations() {
                         type="button" 
                         onClick={() => handleRemoveUser(orgId)} 
                         className="member-action-btn"
-                        style={{ ...styles.memberActionBtn, backgroundColor: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
+                        style={{ ...styles.memberActionBtn, backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.28)' }}
                         title="Remove user from this Org"
                       >
                         <UserMinus size={13} />
@@ -360,7 +360,7 @@ export default function Organizations() {
                         type="button" 
                         onClick={() => handleTransferOwner(orgId)} 
                         className="member-action-btn"
-                        style={{ ...styles.memberActionBtn, backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe' }}
+                        style={{ ...styles.memberActionBtn, backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.28)' }}
                         title="Transfer Ownership to this user"
                       >
                         <UserCheck size={13} />
@@ -374,7 +374,7 @@ export default function Organizations() {
                 <div style={styles.footerPrompt}>
                   <span>Explore Projects</span>
                   <div style={styles.arrowCircle}>
-                    <ArrowUpRight size={14} color="#059669" strokeWidth={2.4} />
+                    <ArrowUpRight size={14} color="#10b981" strokeWidth={2.4} />
                   </div>
                 </div>
               </div>
@@ -397,40 +397,40 @@ const styles: { [key: string]: React.CSSProperties } = {
   pillBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     fontSize: '10.5px',
     fontWeight: 700,
     letterSpacing: '0.07em',
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '3px 10px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '4px 12px',
     borderRadius: '20px',
     marginBottom: '8px',
   },
   pageTitle: {
     margin: 0,
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 800,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.025em',
   },
   pageSubtitle: {
     margin: '6px 0 0 0',
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '14px',
     lineHeight: 1.5,
   },
   formCard: {
     display: 'flex',
     gap: '12px',
-    background: 'rgba(255, 255, 255, 0.85)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    padding: '14px 16px',
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    padding: '12px 14px',
     borderRadius: '16px',
-    border: '1px solid rgba(226, 232, 240, 0.85)',
-    boxShadow: '0 8px 20px -4px rgba(15, 23, 42, 0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
     marginBottom: '26px',
     boxSizing: 'border-box',
   },
@@ -448,12 +448,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   input: {
     width: '100%',
     padding: '12px 14px 12px 42px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '12px',
     fontSize: '14px',
     outline: 'none',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     boxSizing: 'border-box',
     transition: 'all 0.2s ease',
   },
@@ -464,13 +464,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#ffffff',
     border: 'none',
-    padding: '12px 20px',
+    padding: '12px 22px',
     borderRadius: '12px',
     fontWeight: 600,
     fontSize: '14px',
     cursor: 'pointer',
     flexShrink: 0,
-    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
     transition: 'all 0.2s ease',
   },
   grid: {
@@ -482,8 +482,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '42px',
     height: '42px',
     borderRadius: '12px',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -491,15 +491,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cardHeading: {
     margin: 0,
-    fontSize: '16px',
+    fontSize: '16.5px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.01em',
   },
   idBadge: {
     fontSize: '11px',
     fontWeight: 600,
-    color: '#94a3b8',
+    color: '#64748b',
   },
   actionIconBtn: {
     background: 'transparent',
@@ -514,19 +514,19 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   ownerRow: {
     margin: '14px 0',
-    borderTop: '1px solid #f1f5f9',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
     paddingTop: '10px',
     fontSize: '12.5px',
-    color: '#64748b',
+    color: '#94a3b8',
     display: 'flex',
     alignItems: 'center',
     gap: '7px',
   },
   memberBox: {
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
+    backgroundColor: 'rgba(2, 6, 23, 0.55)',
     padding: '12px',
     borderRadius: '12px',
-    border: '1px solid #e2e8f0',
+    border: '1px solid rgba(255, 255, 255, 0.06)',
   },
   memberLabel: {
     display: 'block',
@@ -541,11 +541,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     padding: '9px 12px',
     fontSize: '13px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '8px',
     outline: 'none',
-    backgroundColor: '#ffffff',
-    color: '#0f172a',
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    color: '#ffffff',
     boxSizing: 'border-box',
     transition: 'border-color 0.15s ease',
   },
@@ -569,19 +569,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   footerPrompt: {
     marginTop: '16px',
     paddingTop: '12px',
-    borderTop: '1px dashed #e2e8f0',
+    borderTop: '1px dashed rgba(255, 255, 255, 0.08)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     fontSize: '12.5px',
     fontWeight: 700,
-    color: '#059669',
+    color: '#34d399',
   },
   arrowCircle: {
     width: '24px',
     height: '24px',
     borderRadius: '50%',
-    backgroundColor: '#ecfdf5',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -589,9 +590,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   emptyBox: {
     padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '16px',
-    border: '1px dashed #cbd5e1',
+    border: '1px dashed rgba(255, 255, 255, 0.1)',
   },
   loadingBox: {
     display: 'flex',
@@ -604,7 +605,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '32px',
     height: '32px',
-    border: '3px solid #ecfdf5',
+    border: '3px solid rgba(16, 185, 129, 0.15)',
     borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
@@ -613,9 +614,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
-    border: '1px solid #fee2e2',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    color: '#f87171',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
     padding: '12px 16px',
     borderRadius: '12px',
     marginBottom: '20px',

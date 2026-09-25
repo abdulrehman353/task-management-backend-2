@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axiosClient from '../api/axiosClient';
 import { 
   Paperclip, 
@@ -7,7 +7,8 @@ import {
   Image as ImageIcon, 
   AlertCircle, 
   ExternalLink,
-  Sparkles
+  Sparkles,
+  X
 } from 'lucide-react';
 
 interface AttachmentItem {
@@ -31,6 +32,7 @@ export default function Attachments() {
   // Form State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [ticketId, setTicketId] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchAttachments = async () => {
     try {
@@ -48,6 +50,13 @@ export default function Attachments() {
   useEffect(() => {
     fetchAttachments();
   }, []);
+
+  const handleClearSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +79,7 @@ export default function Attachments() {
       });
 
       alert('File uploaded successfully to storage!');
-      setSelectedFile(null);
+      handleClearSelectedFile();
       setTicketId('');
       fetchAttachments();
     } catch (err: any) {
@@ -89,53 +98,59 @@ export default function Attachments() {
     <div style={styles.pageContainer}>
       <style>{`
         .att-upload-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(18px);
-          -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 20px;
           padding: 16px 20px;
-          box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
           margin-bottom: 26px;
         }
         .att-item-card {
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(226, 232, 240, 0.85);
+          background: rgba(15, 23, 42, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 18px;
           padding: 18px;
           display: flex;
           flex-direction: column;
-          justifyContent: space-between;
+          justify-content: space-between;
           gap: 14px;
           transition: all 0.22s ease;
-          box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
         }
         .att-item-card:hover {
           transform: translateY(-3px);
           border-color: rgba(16, 185, 129, 0.45);
-          box-shadow: 0 16px 30px -6px rgba(16, 185, 129, 0.16);
+          box-shadow: 0 18px 32px -6px rgba(16, 185, 129, 0.2), 0 8px 16px rgba(0, 0, 0, 0.4);
         }
         .att-input-glow:focus {
-          background: #ffffff !important;
+          background: rgba(2, 6, 23, 0.85) !important;
           border-color: #10b981 !important;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
         }
         .emerald-upload-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 8px 16px -3px rgba(16, 185, 129, 0.38) !important;
+          box-shadow: 0 10px 22px -4px rgba(16, 185, 129, 0.5) !important;
         }
         .att-view-link:hover {
-          color: #047857 !important;
+          color: #34d399 !important;
           text-decoration: underline;
+        }
+        .remove-file-badge-btn:hover {
+          background-color: rgba(239, 68, 68, 0.2) !important;
+          border-color: rgba(239, 68, 68, 0.4) !important;
+          color: #f87171 !important;
+          transform: scale(1.05);
         }
       `}</style>
 
       {/* Header Banner */}
       <div style={styles.headerSection}>
         <div style={styles.pillBadge}>
-          <Sparkles size={11} color="#059669" />
+          <Sparkles size={11} color="#34d399" />
           <span>OBJECT STORAGE REPOSITORY</span>
         </div>
         <h2 style={styles.pageTitle}>Attachments & Files</h2>
@@ -149,11 +164,24 @@ export default function Attachments() {
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', flex: 1 }}>
           <div style={styles.fileInputWrapper}>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*,.pdf,.doc,.docx,.txt"
               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
               style={styles.nativeFileInput}
             />
+            {selectedFile && (
+              <button
+                type="button"
+                onClick={handleClearSelectedFile}
+                className="remove-file-badge-btn"
+                style={styles.clearSelectedBtn}
+                title="Remove selected file"
+              >
+                <X size={14} color="#f87171" />
+                <span>Remove</span>
+              </button>
+            )}
           </div>
 
           <input
@@ -188,16 +216,16 @@ export default function Attachments() {
         </div>
       )}
 
-      {/* Attachments List / Table */}
+      {/* Attachments List / Grid */}
       {loading ? (
         <div style={styles.loadingBox}>
           <div style={styles.spinner} />
-          <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Syncing storage objects...</p>
+          <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0 }}>Syncing storage objects...</p>
         </div>
       ) : attachments.length === 0 ? (
         <div style={styles.emptyBox}>
-          <Paperclip size={36} style={{ marginBottom: '10px', color: '#cbd5e1' }} />
-          <h4 style={{ margin: '0 0 6px 0', color: '#334151' }}>No storage objects found</h4>
+          <Paperclip size={36} style={{ marginBottom: '10px', color: '#64748b' }} />
+          <h4 style={{ margin: '0 0 6px 0', color: '#f1f5f9' }}>No storage objects found</h4>
           <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
             Choose an image or document above to push your first asset to the bucket.
           </p>
@@ -217,14 +245,14 @@ export default function Attachments() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={styles.iconBox}>
                       {isImg ? (
-                        <ImageIcon size={18} color="#059669" strokeWidth={2.2} />
+                        <ImageIcon size={18} color="#10b981" strokeWidth={2.2} />
                       ) : (
-                        <FileText size={18} color="#059669" strokeWidth={2.2} />
+                        <FileText size={18} color="#10b981" strokeWidth={2.2} />
                       )}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <h4 style={styles.fileNameText} title={aName}>{aName}</h4>
-                      <div style={{ fontSize: '11.5px', color: '#94a3b8', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
                         ID #{aId} {aTicket ? `• Ticket #${aTicket}` : ''}
                       </div>
                     </div>
@@ -250,7 +278,7 @@ export default function Attachments() {
                       <ExternalLink size={13} />
                     </a>
                   ) : (
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Stored in MinIO</span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>Stored in MinIO</span>
                   )}
                 </div>
               </div>
@@ -273,27 +301,27 @@ const styles: { [key: string]: React.CSSProperties } = {
   pillBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     fontSize: '10.5px',
     fontWeight: 700,
     letterSpacing: '0.07em',
-    color: '#047857',
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
-    padding: '3px 10px',
+    color: '#34d399',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
+    padding: '4px 12px',
     borderRadius: '20px',
     marginBottom: '8px',
   },
   pageTitle: {
     margin: 0,
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 800,
-    color: '#0f172a',
+    color: '#ffffff',
     letterSpacing: '-0.025em',
   },
   pageSubtitle: {
     margin: '6px 0 0 0',
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '14px',
     lineHeight: 1.5,
   },
@@ -307,27 +335,45 @@ const styles: { [key: string]: React.CSSProperties } = {
   fileInputWrapper: {
     flex: 1,
     minWidth: '240px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   },
   nativeFileInput: {
-    width: '100%',
+    flex: 1,
     padding: '8px 12px',
     fontSize: '13px',
     borderRadius: '10px',
-    border: '1px solid #cbd5e1',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     outline: 'none',
     boxSizing: 'border-box',
+  },
+  clearSelectedBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '8px 10px',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    border: '1px solid rgba(239, 68, 68, 0.28)',
+    borderRadius: '8px',
+    color: '#f87171',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    flexShrink: 0,
   },
   input: {
     width: '230px',
     padding: '9px 14px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '10px',
     fontSize: '13px',
     outline: 'none',
-    backgroundColor: 'rgba(248, 250, 252, 0.8)',
-    color: '#0f172a',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    color: '#ffffff',
     boxSizing: 'border-box',
     transition: 'all 0.15s ease',
   },
@@ -344,7 +390,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '13.5px',
     flexShrink: 0,
-    boxShadow: '0 6px 16px -2px rgba(16, 185, 129, 0.35)',
+    boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
     transition: 'all 0.2s ease',
   },
   grid: {
@@ -353,8 +399,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '20px',
   },
   iconBox: {
-    backgroundColor: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    border: '1px solid rgba(16, 185, 129, 0.25)',
     width: '36px',
     height: '36px',
     borderRadius: '10px',
@@ -367,7 +413,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     fontSize: '14px',
     fontWeight: 700,
-    color: '#0f172a',
+    color: '#ffffff',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -377,8 +423,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '12px',
     borderRadius: '12px',
     overflow: 'hidden',
-    backgroundColor: '#f8fafc',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'rgba(2, 6, 23, 0.65)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     height: '140px',
     display: 'flex',
     justifyContent: 'center',
@@ -392,14 +438,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   cardFooter: {
     display: 'flex',
     justifyContent: 'flex-end',
-    borderTop: '1px solid #f1f5f9',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
     paddingTop: '10px',
   },
   viewLink: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '5px',
-    color: '#059669',
+    color: '#10b981',
     fontSize: '12.5px',
     textDecoration: 'none',
     fontWeight: 700,
@@ -408,9 +454,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   emptyBox: {
     padding: '50px 20px',
     textAlign: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderRadius: '16px',
-    border: '1px dashed #cbd5e1',
+    border: '1px dashed rgba(255, 255, 255, 0.1)',
   },
   loadingBox: {
     display: 'flex',
@@ -423,7 +469,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '32px',
     height: '32px',
-    border: '3px solid #ecfdf5',
+    border: '3px solid rgba(16, 185, 129, 0.15)',
     borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
@@ -432,11 +478,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    backgroundColor: '#fef2f2',
-    color: '#b91c1c',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    color: '#f87171',
     padding: '12px 16px',
     borderRadius: '12px',
-    border: '1px solid #fee2e2',
+    border: '1px solid rgba(239, 68, 68, 0.25)',
     marginBottom: '20px',
     fontSize: '13.5px',
   },
