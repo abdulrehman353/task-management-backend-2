@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axiosClient from '../api/axiosClient';
-import { 
-  Users as UsersIcon, 
-  Shield, 
-  Mail, 
-  Calendar, 
+import {
+  Users as UsersIcon,
+  Shield,
+  Mail,
+  Calendar,
   AlertCircle,
   Sparkles,
   Eye,
@@ -98,13 +98,11 @@ export default function Users() {
     try {
       setLoading(true);
       setError(null);
-
       const [usersRes, rolesRes, ticketsRes] = await Promise.allSettled([
         axiosClient.get('/users'),
         axiosClient.get('/roles'),
         axiosClient.get('/tickets'),
       ]);
-
       if (usersRes.status === 'fulfilled') {
         setUsers(Array.isArray(usersRes.value.data) ? usersRes.value.data : usersRes.value.data.users || []);
       }
@@ -131,7 +129,6 @@ export default function Users() {
       alert('Please select a role first');
       return;
     }
-
     try {
       await axiosClient.post('/roles/assign', {
         UserID: userId,
@@ -152,7 +149,6 @@ export default function Users() {
       alert('Please fill in all required fields.');
       return;
     }
-
     try {
       setCreatingUser(true);
       const payload: any = {
@@ -163,12 +159,10 @@ export default function Users() {
         password: createForm.password,
         Password: createForm.password,
       };
-
       if (createForm.date_of_birth) {
         payload.Date_of_birth = createForm.date_of_birth;
         payload.date_of_birth = createForm.date_of_birth;
       }
-
       await axiosClient.post('/auth/signup', payload);
       alert('User created successfully!');
       setShowCreateModal(false);
@@ -185,13 +179,13 @@ export default function Users() {
   const getUserAssignedTickets = (userId?: number) => {
     if (!userId) return [];
     return allTickets.filter((t) => {
-      const assigned = 
+      const assigned =
         t.AssignedToUserID ??
         t.assignedToUserId ??
-        t.AssignedTo ?? 
-        t.assigned_to ?? 
-        t.assignedTo ?? 
-        t.UserID ?? 
+        t.AssignedTo ??
+        t.assigned_to ??
+        t.assignedTo ??
+        t.UserID ??
         t.userId;
       return Number(assigned) === Number(userId);
     });
@@ -284,10 +278,9 @@ export default function Users() {
             View registered accounts, inspect assigned tasks, and allocate corporate security roles.
           </p>
         </div>
-
-        <button 
-          onClick={() => setShowCreateModal(true)} 
-          className="create-user-btn" 
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="create-user-btn"
           style={styles.createUserBtn}
         >
           <UserPlus size={16} strokeWidth={2.4} />
@@ -389,9 +382,9 @@ export default function Users() {
                             );
                           })}
                         </select>
-                        <button 
-                          onClick={() => handleRoleAssign(uId)} 
-                          className="emerald-assign-btn" 
+                        <button
+                          onClick={() => handleRoleAssign(uId)}
+                          className="emerald-assign-btn"
                           style={styles.assignBtn}
                           title="Assign selected role to user"
                         >
@@ -400,7 +393,6 @@ export default function Users() {
                         </button>
                       </div>
                     </td>
-                    
                     {/* ASSIGN AUR VIEW KE CENTER MEIN ASSIGNED ROLE BUTTON */}
                     <td style={{ ...styles.td, textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
@@ -413,7 +405,6 @@ export default function Users() {
                           <Award size={13} color="#38bdf8" />
                           <span>{currentRole}</span>
                         </button>
-
                         <button
                           onClick={() => setViewingUser(u)}
                           className="view-details-btn"
@@ -450,7 +441,6 @@ export default function Users() {
                 <X size={18} color="#94a3b8" />
               </button>
             </div>
-
             <form onSubmit={handleCreateUser} style={styles.form}>
               <div>
                 <label style={styles.label}>Full Name *</label>
@@ -467,7 +457,6 @@ export default function Users() {
                   />
                 </div>
               </div>
-
               <div>
                 <label style={styles.label}>Email Address *</label>
                 <div style={styles.inputWrapper}>
@@ -483,7 +472,6 @@ export default function Users() {
                   />
                 </div>
               </div>
-
               <div>
                 <label style={styles.label}>Password *</label>
                 <div style={styles.inputWrapper}>
@@ -507,7 +495,6 @@ export default function Users() {
                   </button>
                 </div>
               </div>
-
               <div>
                 <label style={styles.label}>Date of Birth (Optional)</label>
                 <div style={styles.inputWrapper}>
@@ -521,18 +508,17 @@ export default function Users() {
                   />
                 </div>
               </div>
-
               <div style={styles.modalActions}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowCreateModal(false)} 
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
                   style={styles.cancelBtn}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={creatingUser} 
+                <button
+                  type="submit"
+                  disabled={creatingUser}
                   style={styles.submitBtn}
                 >
                   {creatingUser ? 'Creating...' : 'Create User'}
@@ -609,7 +595,6 @@ export default function Users() {
                             <span style={styles.compactTicketBadge}>#{tId}</span>
                             <span style={styles.compactTicketTitle} title={tTitle}>{tTitle}</span>
                           </div>
-                          
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                             <span style={styles.statusPillSmall}>{tStatus}</span>
                             <button
@@ -685,13 +670,13 @@ export default function Users() {
               <div style={{ marginTop: '14px' }}>
                 <label style={styles.label}>Attached Image (MinIO Storage)</label>
                 <div style={styles.viewImageBox}>
-                  <img 
+                  <img
                     src={formatAttachmentUrl(selectedTicketDetail.Attachment || selectedTicketDetail.AttachmentURL || selectedTicketDetail.attachment_url || selectedTicketDetail.image_url)}
                     alt="Ticket Attachment"
                     style={styles.viewImageTag}
                   />
                   <div style={{ marginTop: '6px', textAlign: 'right' }}>
-                    <a 
+                    <a
                       href={formatAttachmentUrl(selectedTicketDetail.Attachment || selectedTicketDetail.AttachmentURL || selectedTicketDetail.attachment_url || selectedTicketDetail.image_url)}
                       target="_blank"
                       rel="noreferrer"
